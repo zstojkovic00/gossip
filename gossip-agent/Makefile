@@ -1,4 +1,4 @@
-APP=exec_scrape
+APP=tcp_lisener
 
 .PHONY: build
 build: gen $(APP)
@@ -8,7 +8,7 @@ run: build
 	sudo ./$(APP)
 
 .PHONY: gen
-gen: sum vmlinux src/gen_execve_bpfel.go
+gen: sum vmlinux src/gen_tcp_bpfel.go
 
 .PHONY: vmlinux
 vmlinux: src/bpf/vmlinux.h
@@ -28,13 +28,13 @@ clean:
 	-rm go.sum
 	sed 's/v.*/latest/g' -i go.mod
 
-$(APP): src/main.go src/gen_execve_bpfel.go
+$(APP): src/main.go src/gen_tcp_bpfel.go
 	CGO_ENABLED=0 go build -o $(APP) src/*.go
 
 src/bpf/vmlinux.h:
 	bpftool btf dump file /sys/kernel/btf/vmlinux format c > src/bpf/vmlinux.h
 
-src/gen_execve_bpfel.go: src/bpf/hello.bpf.c
+src/gen_tcp_bpfel.go: src/bpf/tcp.bpf.c
 	go generate src/*.go
 
 go.sum:
