@@ -14,7 +14,7 @@ func parseSchema() (avro.Schema, error) {
 	return avro.Parse(tcpEventSchema)
 }
 
-// Confluent's Schema Registry wire format: [0x00 magic byte][schema ID 4B big-endian][avro payload]
+// Confluent's Schema Registry wire protokol format: [0x00 magic byte][schema ID 4B big-endian][avro payload]
 func encode(schema avro.Schema, schemaID int, event TcpEvent) ([]byte, error) {
 	avroBytes, err := avro.Marshal(schema, event)
 	if err != nil {

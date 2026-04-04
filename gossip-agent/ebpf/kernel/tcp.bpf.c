@@ -1,4 +1,3 @@
-
 // BTF je mapa koja pokazuje kako izgledaju sve kernel strukture
 // /sys/kernel/btf/vmlinux je fajl koji kernel eksportuje i sadrzi sve te BTF informacije u binarnom formatu
 #include "vmlinux.h" // bpftool btf dump file /sys/kernel/btf/vmlinux format c > src/bpf/vmlinux.h 
@@ -11,16 +10,15 @@
 
 struct tcp_event_t  {
     u32 pid;
-    u32 saddr; // source ip (IPv4)
-    u32 daddr; // destination IP (IPv4)
-    u32 state; // TCP State
-    u16 sport; // source port
-    u16 dport; // destination port
-    u8 comm[16]; // process name
+    u32 saddr; // dolazni ip (IPv4)
+    u32 daddr; // odlazni IP (IPv4)
+    u32 state; // state u koji prelazi
+    u16 sport; // dolazni port
+    u16 dport; // odlazni port
+    u8 comm[16]; // ime procesa
 };
 
-
-// unix pipe, kernel -> golang
+// Kanal za slanje dogadjaja iz kernela u Go program (ring buffer)
 struct {        
     __uint(type, BPF_MAP_TYPE_RINGBUF);                                                                                                               
     __uint(max_entries, 1 << 24);
