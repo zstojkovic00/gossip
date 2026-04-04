@@ -26,8 +26,8 @@ struct {
     __uint(max_entries, 1 << 24);
 } events SEC(".maps"); 
 
-
-
+// eBPF
+// bpf()
 SEC("tracepoint/sock/inet_sock_set_state")
 int consume_tcp_event(struct trace_event_raw_inet_sock_set_state *args) // cat /sys/kernel/debug/tracing/events/sock/inet_sock_set_state/format
 {
@@ -42,8 +42,8 @@ int consume_tcp_event(struct trace_event_raw_inet_sock_set_state *args) // cat /
     }
 
     e->pid   = bpf_get_current_pid_tgid() >> 32;
-    e->saddr = args->saddr[0];
-    e->daddr = args->daddr[0];
+    __builtin_memcpy(&e->saddr, args->saddr, 4);
+    __builtin_memcpy(&e->daddr, args->daddr, 4);
     e->sport = args->sport;
     e->dport = args->dport;
     e->state = args->newstate;

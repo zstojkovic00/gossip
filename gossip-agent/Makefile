@@ -1,42 +1,35 @@
-APP=tcp_lisener
+APP=tcp_listener
 
 .PHONY: build
 build: gen $(APP)
 
+CONFIG?=kafka/kafka-config.json
+
 .PHONY: run
 run: build
-	sudo ./$(APP)
+	sudo ./$(APP) $(CONFIG)
 
 .PHONY: gen
-gen: sum vmlinux src/gen_tcp_bpfel.go
+gen: vmlinux ebpf/gen_tcp_bpfel.go
 
 .PHONY: vmlinux
-vmlinux: src/bpf/vmlinux.h
-
-.PHONY: sum
-sum: go.sum
+vmlinux: ebpf/kernel/vmlinux.h
 
 .PHONY: fmt
-fmt: sum
-	go fmt src/*.go
+fmt:
+	go fmt ./...
 
 .PHONY: clean
 clean:
 	-rm $(APP)
-	-rm src/gen*
-	-rm src/bpf/vmlinux.h
-	-rm go.sum
-	sed 's/v.*/latest/g' -i go.mod
+	-rm ebpf/gen_tcp_bpfel.go ebpf/gen_tcp_bpfel.o
+	-rm ebpf/kernel/vmlinux.h
 
-$(APP): src/main.go src/gen_tcp_bpfel.go
-	CGO_ENABLED=0 go build -o $(APP) src/*.go
+$(APP): ebpf/gen_tcp_bpfel.go
+	CGO_ENABLED=0 go build -o $(APP) .
 
-src/bpf/vmlinux.h:
-	bpftool btf dump file /sys/kernel/btf/vmlinux format c > src/bpf/vmlinux.h
+ebpf/kernel/vmlinux.h:
+	bpftool btf dump file /sys/kernel/btf/vmlinux format c > ebpf/kernel/vmlinux.h
 
-src/gen_tcp_bpfel.go: src/bpf/tcp.bpf.c
-	go generate src/*.go
-
-go.sum:
-	go mod download github.com/cilium/ebpf
-	go get github.com/cilium/ebpf/internal/unix
+ebpf/gen_tcp_bpfel.go: ebpf/kernel/tcp.bpf.c
+	go generate ./ebpf/...
