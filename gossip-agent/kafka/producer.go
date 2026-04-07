@@ -49,6 +49,7 @@ func (p *Producer) Send(event TcpEvent) error {
 
 	_, _, err = p.producer.SendMessage(&sarama.ProducerMessage{
 		Topic: p.topic,
+		Key:   sarama.StringEncoder(event.Skaddr),
 		Value: sarama.ByteEncoder(msg),
 	})
 	if err != nil {

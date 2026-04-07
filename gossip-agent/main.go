@@ -46,22 +46,25 @@ func main() {
 		}
 
 		if err := producer.Send(kafka.TcpEvent{
-			Pid:   event.Pid,
-			Saddr: event.Saddr,
-			Daddr: event.Daddr,
-			Sport: event.Sport,
-			Dport: event.Dport,
-			State: event.State,
-			Comm:  event.Comm,
+			Skaddr:   event.Skaddr,
+			Pid:      event.Pid,
+			Saddr:    event.Saddr,
+			Daddr:    event.Daddr,
+			Sport:    event.Sport,
+			Dport:    event.Dport,
+			NewState: event.NewState,
+			OldState: event.OldState,
+			Comm:     event.Comm,
 		}); err != nil {
 			log.Printf("send: %v", err)
 			continue
 		}
 
-		log.Printf("pid=%-6d comm=%-16s %s:%-5d → %s:%-5d state=%s",
+		log.Printf("skaddr=%-18s pid=%-6d comm=%-16s %s:%-5d → %s:%-5d state=%s",
+			event.Skaddr,
 			event.Pid, event.Comm,
 			event.Saddr, event.Sport,
 			event.Daddr, event.Dport,
-			event.State)
+			event.NewState)
 	}
 }

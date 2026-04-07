@@ -9,10 +9,12 @@
 #define IPPROTO_TCP 6   // TCP protokol
 
 struct tcp_event_t  {
+    u64 skaddr; // pointer na struct sock
     u32 pid;
     u32 saddr; // dolazni ip (IPv4)
     u32 daddr; // odlazni IP (IPv4)
-    u32 state; // state u koji prelazi
+    u32 oldstate; // state iz koga prelazi
+    u32 newstate; // state u koji prelazi
     u16 sport; // dolazni port
     u16 dport; // odlazni port
     u8 comm[16]; // ime procesa
@@ -39,12 +41,14 @@ int consume_tcp_event(struct trace_event_raw_inet_sock_set_state *args) // cat /
         return 1;
     }
 
+    e->skaddr = (u64)args->skaddr;
     e->pid   = bpf_get_current_pid_tgid() >> 32;
     __builtin_memcpy(&e->saddr, args->saddr, 4);
     __builtin_memcpy(&e->daddr, args->daddr, 4);
     e->sport = args->sport;
     e->dport = args->dport;
-    e->state = args->newstate;
+    e->oldstate = args->oldstate;
+    e->newstate = args->newstate;
     bpf_get_current_comm(&e->comm, sizeof(e->comm));
 
     bpf_ringbuf_submit(e, 0);

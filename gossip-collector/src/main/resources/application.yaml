@@ -1,6 +1,9 @@
 spring:
   application:
     name: gossip-collector
+  profiles:
+    active: local
+
   kafka:
     bootstrap-servers: ${KAFKA_BROKER}
     consumer:
@@ -12,6 +15,9 @@ spring:
       properties:
         schema.registry.url: ${SCHEMA_REGISTRY_URL}
         specific.avro.reader: true
+    topics:
+      tcp-event: tcp-events
+
   neo4j:
     uri: ${NEO4J_URI}
     authentication:

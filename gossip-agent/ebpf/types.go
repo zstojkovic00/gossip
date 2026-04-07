@@ -2,6 +2,7 @@ package ebpf
 
 import (
 	"encoding/binary"
+	"fmt"
 	"net"
 )
 
@@ -21,33 +22,39 @@ const (
 )
 
 type rawEvent struct {
-	Pid   uint32
-	Saddr uint32
-	Daddr uint32
-	State uint32
-	Sport uint16
-	Dport uint16
-	Comm  [16]byte
+	Skaddr   uint64
+	Pid      uint32
+	Saddr    uint32
+	Daddr    uint32
+	OldState uint32
+	NewState uint32
+	Sport    uint16
+	Dport    uint16
+	Comm     [16]byte
 }
 type Event struct {
-	Pid   int64
-	Saddr string
-	Daddr string
-	Sport int32
-	Dport int32
-	State string
-	Comm  string
+	Skaddr   string
+	Pid      int32
+	Saddr    string
+	Daddr    string
+	OldState string
+	NewState string
+	Sport    int32
+	Dport    int32
+	Comm     string
 }
 
 func parseEvent(raw rawEvent) Event {
 	return Event{
-		Pid:   int64(raw.Pid),
-		Saddr: toIPv4(raw.Saddr).String(),
-		Daddr: toIPv4(raw.Daddr).String(),
-		Sport: int32(raw.Sport),
-		Dport: int32(raw.Dport),
-		State: toTcpState(raw.State),
-		Comm:  nullTerminatedString(raw.Comm[:]),
+		Skaddr:   fmt.Sprintf("0x%x", raw.Skaddr),
+		Pid:      int32(raw.Pid),
+		Saddr:    toIPv4(raw.Saddr).String(),
+		Daddr:    toIPv4(raw.Daddr).String(),
+		Sport:    int32(raw.Sport),
+		Dport:    int32(raw.Dport),
+		OldState: toTcpState(raw.OldState),
+		NewState: toTcpState(raw.NewState),
+		Comm:     nullTerminatedString(raw.Comm[:]),
 	}
 }
 

@@ -25,7 +25,7 @@ clean:
 	-rm ebpf/gen_tcp_bpfel.go ebpf/gen_tcp_bpfel.o
 	-rm ebpf/kernel/vmlinux.h
 
-$(APP): ebpf/gen_tcp_bpfel.go
+$(APP): ebpf/gen_tcp_bpfel.go kafka/schemas/tcp_event.avsc $(wildcard kafka/*.go) $(wildcard ebpf/*.go) *.go
 	CGO_ENABLED=0 go build -o $(APP) .
 
 ebpf/kernel/vmlinux.h:
