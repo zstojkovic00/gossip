@@ -11,7 +11,7 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092,EXTERNAL://kafka:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
@@ -19,7 +19,7 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
     networks:
-      - app-network
+      - gossip-network
 
   schema-registry:
     image: quay.io/apicurio/apicurio-registry-mem:2.5.0.Final
@@ -27,27 +27,60 @@ services:
     ports:
       - "8081:8080"
     networks:
-      - app-network
+      - gossip-network
 
   kafka-ui:
-    container_name: kafka-ui
     image: provectuslabs/kafka-ui:latest
     ports:
       - "8122:8080"
     environment:
       DYNAMIC_CONFIG_ENABLED: 'true'
       KAFKA_CLUSTERS_0_NAME: kafka
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9094
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8080/apis/ccompat/v7
     depends_on:
       - kafka
       - schema-registry
     networks:
-      - app-network
+      - gossip-network
+
+  neo4j:
+    image: neo4j:latest
+    volumes:
+      - neo4j_data:/data
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    restart: always
+    networks:
+      - gossip-network
+
+  gossip-collector:
+    container_name: gossip-collector
+    build:
+      context: .
+    environment:
+      KAFKA_BROKER: kafka:9092
+      SCHEMA_REGISTRY_URL: http://schema-registry:8080/apis/ccompat/v7
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: password
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - kafka
+      - schema-registry
+      - neo4j
+    networks:
+      - gossip-network
 
 networks:
-  app-network:
+  gossip-network:
     driver: bridge
+
 volumes:
   kafka_data:
+    driver: local
+  neo4j_data:
     driver: local
