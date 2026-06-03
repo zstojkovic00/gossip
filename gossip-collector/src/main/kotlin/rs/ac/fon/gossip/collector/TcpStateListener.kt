@@ -3,6 +3,8 @@ package rs.ac.fon.gossip.collector
 import gossip.TcpEvent
 import org.neo4j.driver.Values
 import org.slf4j.LoggerFactory
+import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.event.EventListener
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.handler.annotation.Header
@@ -13,7 +15,6 @@ import java.time.Instant
 class TcpStateListener(
     private val neo4jDriver: org.neo4j.driver.Driver
 ) {
-
     private val log = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(topics = ["\${spring.kafka.topics.tcp-event}"])
