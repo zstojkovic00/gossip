@@ -25,7 +25,7 @@ services:
     image: quay.io/apicurio/apicurio-registry-mem:2.5.0.Final
     hostname: schema-registry
     ports:
-      - "8081:8080"
+      - "8083:8080"
     networks:
       - gossip-network
 

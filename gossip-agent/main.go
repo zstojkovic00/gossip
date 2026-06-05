@@ -18,6 +18,7 @@ func main() {
 		log.Fatalf("config: %v", err)
 	}
 
+	// TCP
 	objs, err := ebpf.Load()
 	if err != nil {
 		log.Fatalf("ebpf load: %v", err)
@@ -35,6 +36,22 @@ func main() {
 		log.Fatalf("kafka producer: %v", err)
 	}
 	defer producer.Close()
+
+	httpObjs, err := ebpf.LoadHTTP()
+	if err != nil {
+		log.Fatalf("ebpf http load: %v", err)
+	}
+	defer httpObjs.Close()
+
+	httpListener, err := ebpf.NewHTTPListener(httpObjs)
+	if err != nil {
+		log.Fatalf("ebpf http listener: %v", err)
+	}
+	defer httpListener.Close()
+
+	go listenHTTPOpen(httpListener)
+	go listenHTTPData(httpListener)
+	go listenHTTPClose(httpListener)
 
 	log.Println("gossip-agent started")
 
@@ -66,5 +83,45 @@ func main() {
 			event.Saddr, event.Sport,
 			event.Daddr, event.Dport,
 			event.NewState)
+	}
+}
+
+func listenHTTPOpen(l *ebpf.HTTPListener) {
+	for {
+		e, err := l.ReadOpen()
+		if err != nil {
+			log.Printf("http open: %v", err)
+			return
+		}
+		log.Printf("[HTTP open]  pid=%-6d fd=%-4d remote=%s:%d",
+			e.ConnId.Pid, e.ConnId.Fd, e.RemoteAddr, e.RemotePort)
+	}
+}
+
+func listenHTTPData(l *ebpf.HTTPListener) {
+	for {
+		e, err := l.ReadData()
+		if err != nil {
+			log.Printf("http data: %v", err)
+			return
+		}
+		preview := e.Msg
+		if len(preview) > 120 {
+			preview = preview[:120]
+		}
+		log.Printf("[HTTP data]  pid=%-6d fd=%-4d dir=%-7s pos=%-6d msg=%q",
+			e.ConnId.Pid, e.ConnId.Fd, e.Direction, e.Pos, preview)
+	}
+}
+
+func listenHTTPClose(l *ebpf.HTTPListener) {
+	for {
+		e, err := l.ReadClose()
+		if err != nil {
+			log.Printf("http close: %v", err)
+			return
+		}
+		log.Printf("[HTTP close] pid=%-6d fd=%-4d wr=%-8d rd=%d",
+			e.ConnId.Pid, e.ConnId.Fd, e.WrBytes, e.RdBytes)
 	}
 }
