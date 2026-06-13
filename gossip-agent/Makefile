@@ -1,4 +1,4 @@
-APP=tcp_listener
+APP=gossip-agent
 
 .PHONY: build
 build: gen $(APP)
@@ -10,10 +10,10 @@ run: build
 	sudo ./$(APP) $(CONFIG)
 
 .PHONY: gen
-gen: vmlinux ebpf/gen_tcp_bpfel.go ebpf/gen_http_bpfel.go
+gen: vmlinux ebpf/tcp/gen_tcp_bpfel.go ebpf/http/gen_http_bpfel.go
 
 .PHONY: vmlinux
-vmlinux: ebpf/kernel/vmlinux.h
+vmlinux: ebpf/vmlinux.h
 
 .PHONY: fmt
 fmt:
@@ -22,18 +22,18 @@ fmt:
 .PHONY: clean
 clean:
 	-rm $(APP)
-	-rm ebpf/gen_tcp_bpfel.go ebpf/gen_tcp_bpfel.o
-	-rm ebpf/gen_http_bpfel.go ebpf/gen_http_bpfel.o
-	-rm ebpf/kernel/vmlinux.h
+	-rm ebpf/tcp/gen_tcp_bpfel.go ebpf/tcp/gen_tcp_bpfel.o
+	-rm ebpf/http/gen_http_bpfel.go ebpf/http/gen_http_bpfel.o
+	-rm ebpf/vmlinux.h
 
-$(APP): ebpf/gen_tcp_bpfel.go ebpf/gen_http_bpfel.go kafka/schemas/tcp_event.avsc $(wildcard kafka/*.go) $(wildcard ebpf/*.go) *.go
+$(APP): ebpf/tcp/gen_tcp_bpfel.go ebpf/http/gen_http_bpfel.go kafka/schemas/tcp_event.avsc $(wildcard kafka/*.go) $(wildcard ebpf/tcp/*.go) $(wildcard ebpf/http/*.go) *.go
 	CGO_ENABLED=0 go build -o $(APP) .
 
-ebpf/kernel/vmlinux.h:
-	bpftool btf dump file /sys/kernel/btf/vmlinux format c > ebpf/kernel/vmlinux.h
+ebpf/vmlinux.h:
+	bpftool btf dump file /sys/kernel/btf/vmlinux format c > ebpf/vmlinux.h
 
-ebpf/gen_tcp_bpfel.go: ebpf/kernel/tcp.bpf.c
-	go generate ./ebpf/...
+ebpf/tcp/gen_tcp_bpfel.go: ebpf/tcp/kernel/tcp.bpf.c
+	go generate ./ebpf/tcp/...
 
-ebpf/gen_http_bpfel.go: ebpf/kernel/http.bpf.c
-	go generate ./ebpf/...
+ebpf/http/gen_http_bpfel.go: ebpf/http/kernel/http.bpf.c
+	go generate ./ebpf/http/...

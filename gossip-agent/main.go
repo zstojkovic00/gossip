@@ -3,8 +3,10 @@ package main
 import (
 	"log"
 	"os"
+	"sync"
 
-	"gossip-agent/ebpf"
+	httpebpf "gossip-agent/ebpf/http"
+	"gossip-agent/ebpf/tcp"
 	"gossip-agent/kafka"
 )
 
@@ -19,50 +21,71 @@ func main() {
 	}
 
 	// TCP
-	objs, err := ebpf.Load()
+	tcpObjs, err := tcp.Load()
 	if err != nil {
-		log.Fatalf("ebpf load: %v", err)
+		log.Fatalf("ebpf tcp load: %v", err)
 	}
-	defer objs.Close()
+	defer tcpObjs.Close()
 
-	listener, err := ebpf.NewListener(objs)
+	tcpListener, err := tcp.NewListener(tcpObjs)
 	if err != nil {
-		log.Fatalf("ebpf listener: %v", err)
+		log.Fatalf("ebpf tcp listener: %v", err)
 	}
-	defer listener.Close()
+	defer tcpListener.Close()
 
-	producer, err := kafka.NewProducer(cfg)
+	tcpProducer, err := kafka.NewTcpProducer(cfg)
 	if err != nil {
-		log.Fatalf("kafka producer: %v", err)
+		log.Fatalf("kafka tcp producer: %v", err)
 	}
-	defer producer.Close()
+	defer tcpProducer.Close()
 
-	httpObjs, err := ebpf.LoadHTTP()
+	// HTTP
+	httpObjs, err := httpebpf.Load()
 	if err != nil {
 		log.Fatalf("ebpf http load: %v", err)
 	}
 	defer httpObjs.Close()
 
-	httpListener, err := ebpf.NewHTTPListener(httpObjs)
+	httpListener, err := httpebpf.NewListener(httpObjs)
 	if err != nil {
 		log.Fatalf("ebpf http listener: %v", err)
 	}
 	defer httpListener.Close()
 
-	go listenHTTPOpen(httpListener)
-	go listenHTTPData(httpListener)
-	go listenHTTPClose(httpListener)
+	httpProducer, err := kafka.NewHttpProducer(cfg)
+	if err != nil {
+		log.Fatalf("kafka http producer: %v", err)
+	}
+	defer httpProducer.Close()
 
 	log.Println("gossip-agent started")
 
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		listenTCP(tcpListener, tcpProducer)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		listenHTTP(httpListener, httpProducer)
+	}()
+
+	wg.Wait()
+}
+
+func listenTCP(l *tcp.Listener, p *kafka.Producer[kafka.TcpEvent]) {
 	for {
-		event, err := listener.Read()
+		event, err := l.Read()
 		if err != nil {
-			log.Printf("read: %v", err)
-			continue
+			log.Printf("tcp read: %v", err)
+			return
 		}
 
-		if err := producer.Send(kafka.TcpEvent{
+		if err := p.Send(kafka.TcpEvent{
 			Skaddr:   event.Skaddr,
 			Pid:      event.Pid,
 			Saddr:    event.Saddr,
@@ -73,11 +96,11 @@ func main() {
 			OldState: event.OldState,
 			Comm:     event.Comm,
 		}); err != nil {
-			log.Printf("send: %v", err)
+			log.Printf("tcp send: %v", err)
 			continue
 		}
 
-		log.Printf("skaddr=%-18s pid=%-6d comm=%-16s %s:%-5d → %s:%-5d state=%s",
+		log.Printf("[TCP] skaddr=%-18s pid=%-6d comm=%-16s %s:%-5d → %s:%-5d state=%s",
 			event.Skaddr,
 			event.Pid, event.Comm,
 			event.Saddr, event.Sport,
@@ -86,42 +109,49 @@ func main() {
 	}
 }
 
-func listenHTTPOpen(l *ebpf.HTTPListener) {
-	for {
-		e, err := l.ReadOpen()
-		if err != nil {
-			log.Printf("http open: %v", err)
-			return
-		}
-		log.Printf("[HTTP open]  pid=%-6d fd=%-4d remote=%s:%d",
-			e.ConnId.Pid, e.ConnId.Fd, e.RemoteAddr, e.RemotePort)
-	}
-}
+func listenHTTP(l *httpebpf.Listener, p *kafka.Producer[kafka.HttpEvent]) {
+	pending := make(map[string]httpebpf.Request)
 
-func listenHTTPData(l *ebpf.HTTPListener) {
 	for {
-		e, err := l.ReadData()
+		e, err := l.Read()
 		if err != nil {
-			log.Printf("http data: %v", err)
+			log.Printf("http read: %v", err)
 			return
 		}
-		preview := e.Msg
-		if len(preview) > 120 {
-			preview = preview[:120]
-		}
-		log.Printf("[HTTP data]  pid=%-6d fd=%-4d dir=%-7s pos=%-6d msg=%q",
-			e.ConnId.Pid, e.ConnId.Fd, e.Direction, e.Pos, preview)
-	}
-}
 
-func listenHTTPClose(l *ebpf.HTTPListener) {
-	for {
-		e, err := l.ReadClose()
-		if err != nil {
-			log.Printf("http close: %v", err)
-			return
+		if e.Direction == "ingress" {
+			req, ok := httpebpf.ParseRequest(e.Msg)
+			if !ok {
+				continue
+			}
+			pending[e.Skaddr] = req
+		} else {
+			resp, ok := httpebpf.ParseResponse(e.Msg)
+			if !ok {
+				continue
+			}
+			req, exists := pending[e.Skaddr]
+			if !exists {
+				continue
+			}
+			delete(pending, e.Skaddr)
+
+			if err := p.Send(kafka.HttpEvent{
+				Skaddr: e.Skaddr,
+				Saddr:  e.Saddr,
+				Daddr:  e.Daddr,
+				Sport:  e.Sport,
+				Dport:  e.Dport,
+				Method: req.Method,
+				URL:    req.URL,
+				Status: int32(resp.Status),
+			}); err != nil {
+				log.Printf("http send: %v", err)
+				continue
+			}
+
+			log.Printf("[HTTP] %s:%-5d → %s:%-5d %s %s → %d",
+				e.Saddr, e.Sport, e.Daddr, e.Dport, req.Method, req.URL, resp.Status)
 		}
-		log.Printf("[HTTP close] pid=%-6d fd=%-4d wr=%-8d rd=%d",
-			e.ConnId.Pid, e.ConnId.Fd, e.WrBytes, e.RdBytes)
 	}
 }

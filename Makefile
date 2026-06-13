@@ -22,7 +22,7 @@ run: gossip-collector gossip-agent
 # CLEAR
 clear-agent:
 	@echo "[clear-agent]"
-	sudo kill $$(pgrep tcp_listener) 2>/dev/null
+	sudo kill $$(pgrep gossip-agent) 2>/dev/null
 
 clear-collector:
 	@echo "[clear-collector]"
