@@ -7,20 +7,20 @@ import (
 	avro "github.com/hamba/avro/v2"
 )
 
-type Producer struct {
+type Producer[T any] struct {
 	producer   sarama.SyncProducer
 	avroSchema avro.Schema
 	schemaID   int
 	topic      string
 }
 
-func NewProducer(cfg Config) (*Producer, error) {
-	schemaID, err := resolveSchemaID(cfg.RegistryURL, cfg.Topic+"-value", tcpEventSchema)
+func newProducer[T any](broker, topic, registryURL, schemaStr string) (*Producer[T], error) {
+	schemaID, err := resolveSchemaID(registryURL, topic+"-value", schemaStr)
 	if err != nil {
 		return nil, err
 	}
 
-	avroSchema, err := parseSchema()
+	avroSchema, err := avro.Parse(schemaStr)
 	if err != nil {
 		return nil, fmt.Errorf("parse avro schema: %w", err)
 	}
@@ -28,20 +28,28 @@ func NewProducer(cfg Config) (*Producer, error) {
 	saramaCfg := sarama.NewConfig()
 	saramaCfg.Producer.Return.Successes = true
 
-	p, err := sarama.NewSyncProducer([]string{cfg.Broker}, saramaCfg)
+	p, err := sarama.NewSyncProducer([]string{broker}, saramaCfg)
 	if err != nil {
 		return nil, fmt.Errorf("kafka producer: %w", err)
 	}
 
-	return &Producer{
+	return &Producer[T]{
 		producer:   p,
 		avroSchema: avroSchema,
 		schemaID:   schemaID,
-		topic:      cfg.Topic,
+		topic:      topic,
 	}, nil
 }
 
-func (p *Producer) Send(event TcpEvent) error {
+func NewTcpProducer(cfg Config) (*Producer[TcpEvent], error) {
+	return newProducer[TcpEvent](cfg.Broker, cfg.TcpTopic, cfg.RegistryURL, tcpEventSchema)
+}
+
+func NewHttpProducer(cfg Config) (*Producer[HttpEvent], error) {
+	return newProducer[HttpEvent](cfg.Broker, cfg.HttpTopic, cfg.RegistryURL, httpEventSchema)
+}
+
+func (p *Producer[T]) Send(event T) error {
 	msg, err := encode(p.avroSchema, p.schemaID, event)
 	if err != nil {
 		return fmt.Errorf("avro encode: %w", err)
@@ -49,7 +57,6 @@ func (p *Producer) Send(event TcpEvent) error {
 
 	_, _, err = p.producer.SendMessage(&sarama.ProducerMessage{
 		Topic: p.topic,
-		Key:   sarama.StringEncoder(event.Skaddr),
 		Value: sarama.ByteEncoder(msg),
 	})
 	if err != nil {
@@ -59,6 +66,6 @@ func (p *Producer) Send(event TcpEvent) error {
 	return nil
 }
 
-func (p *Producer) Close() error {
+func (p *Producer[T]) Close() error {
 	return p.producer.Close()
 }

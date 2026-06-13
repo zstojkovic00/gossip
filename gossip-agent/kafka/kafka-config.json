@@ -1,5 +1,6 @@
 {
   "broker": "localhost:9094",
-  "registry_url": "http://localhost:8081/apis/ccompat/v7",
-  "topic": "tcp-events"
+  "registry_url": "http://localhost:8083/apis/ccompat/v7",
+  "tcp_topic": "tcp-events",
+  "http_topic": "http-events"
 }

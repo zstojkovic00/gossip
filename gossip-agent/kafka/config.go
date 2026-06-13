@@ -9,7 +9,8 @@ import (
 type Config struct {
 	Broker      string `json:"broker"`
 	RegistryURL string `json:"registry_url"`
-	Topic       string `json:"topic"`
+	TcpTopic    string `json:"tcp_topic"`
+	HttpTopic   string `json:"http_topic"`
 }
 
 func LoadConfig(path string) (Config, error) {
