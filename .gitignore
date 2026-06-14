@@ -5,8 +5,7 @@
 gossip-agent/tcp_listener
 gossip-agent/ebpf/gen_tcp_bpfel.go
 gossip-agent/ebpf/gen_tcp_bpfel.o
-gossip-agent/ebpf/kernel/vmlinux.h
-
+gossip-agent/ebpf/vmlinux.h
 # Gradle
 gossip-collector/gradle/
 gossip-collector/gradlew
