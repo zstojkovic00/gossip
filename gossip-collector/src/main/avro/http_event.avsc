@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "HttpEvent",
+  "namespace": "gossip",
+  "fields": [
+    {"name": "skaddr", "type": "string"},
+    {"name": "saddr",  "type": "string"},
+    {"name": "daddr",  "type": "string"},
+    {"name": "sport",  "type": "int"},
+    {"name": "dport",  "type": "int"},
+    {"name": "method", "type": "string"},
+    {"name": "url",    "type": "string"},
+    {"name": "status", "type": "int"}
+  ]
+}
