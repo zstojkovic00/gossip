@@ -414,6 +414,48 @@ int sys_exit_read(struct trace_event_raw_sys_exit *ctx) {
     return 0;
 }
 
+SEC("tracepoint/syscalls/sys_enter_recvfrom")
+int sys_enter_recvfrom(struct trace_event_raw_sys_enter *ctx) {
+    u64 id = bpf_get_current_pid_tgid();
+    struct data_args_t args = {};
+    args.fd = (u32)ctx->args[0];
+    args.buf = (u64)ctx->args[1];
+    bpf_map_update_elem(&active_read_args_map, &id, &args, BPF_ANY);
+    return 0;
+}
+
+SEC("tracepoint/syscalls/sys_exit_recvfrom")
+int sys_exit_recvfrom(struct trace_event_raw_sys_exit *ctx) {
+    u64 id = bpf_get_current_pid_tgid();
+    struct data_args_t *args = bpf_map_lookup_elem(&active_read_args_map, &id);
+    if (args) {
+        process_syscall_data(id, ctx->ret, args, kIngress);
+        bpf_map_delete_elem(&active_read_args_map, &id);
+    }
+    return 0;
+}
+
+SEC("tracepoint/syscalls/sys_enter_sendto")
+int sys_enter_sendto(struct trace_event_raw_sys_enter *ctx) {
+    u64 id = bpf_get_current_pid_tgid();
+    struct data_args_t args = {};
+    args.fd = (u32)ctx->args[0];
+    args.buf = (u64)ctx->args[1];
+    bpf_map_update_elem(&active_write_args_map, &id, &args, BPF_ANY);
+    return 0;
+}
+
+SEC("tracepoint/syscalls/sys_exit_sendto")
+int sys_exit_sendto(struct trace_event_raw_sys_exit *ctx) {
+    u64 id = bpf_get_current_pid_tgid();
+    struct data_args_t *args = bpf_map_lookup_elem(&active_write_args_map, &id);
+    if (args) {
+        process_syscall_data(id, ctx->ret, args, kEgress);
+        bpf_map_delete_elem(&active_write_args_map, &id);
+    }
+    return 0;
+}
+
 SEC("tracepoint/syscalls/sys_enter_close")
 int sys_enter_close(struct trace_event_raw_sys_enter *ctx) {
     u64 id = bpf_get_current_pid_tgid();

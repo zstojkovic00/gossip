@@ -85,6 +85,10 @@ func listenTCP(l *tcp.Listener, p *kafka.Producer[kafka.TcpEvent]) {
 			return
 		}
 
+		if event.NewState != "ESTABLISHED" {
+			continue
+		}
+
 		if err := p.Send(kafka.TcpEvent{
 			Skaddr:   event.Skaddr,
 			Pid:      event.Pid,
@@ -100,8 +104,7 @@ func listenTCP(l *tcp.Listener, p *kafka.Producer[kafka.TcpEvent]) {
 			continue
 		}
 
-		log.Printf("[TCP] skaddr=%-18s pid=%-6d comm=%-16s %s:%-5d → %s:%-5d state=%s",
-			event.Skaddr,
+		log.Printf("[TCP] pid=%-6d comm=%-16s %s:%-5d → %s:%-5d state=%s",
 			event.Pid, event.Comm,
 			event.Saddr, event.Sport,
 			event.Daddr, event.Dport,

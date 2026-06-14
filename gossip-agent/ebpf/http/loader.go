@@ -32,6 +32,8 @@ func Load() (*Objects, error) {
 		"sys_enter_accept", "sys_exit_accept",
 		"sys_enter_read", "sys_exit_read",
 		"sys_enter_write", "sys_exit_write",
+		"sys_enter_recvfrom", "sys_exit_recvfrom",
+		"sys_enter_sendto", "sys_exit_sendto",
 		"sys_enter_close", "sys_exit_close",
 	}
 
@@ -69,6 +71,14 @@ func attach(name string, objs *gen_httpObjects) (link.Link, error) {
 		return link.Tracepoint("syscalls", name, objs.SysEnterWrite, nil)
 	case "sys_exit_write":
 		return link.Tracepoint("syscalls", name, objs.SysExitWrite, nil)
+	case "sys_enter_recvfrom":
+		return link.Tracepoint("syscalls", name, objs.SysEnterRecvfrom, nil)
+	case "sys_exit_recvfrom":
+		return link.Tracepoint("syscalls", name, objs.SysExitRecvfrom, nil)
+	case "sys_enter_sendto":
+		return link.Tracepoint("syscalls", name, objs.SysEnterSendto, nil)
+	case "sys_exit_sendto":
+		return link.Tracepoint("syscalls", name, objs.SysExitSendto, nil)
 	case "sys_enter_close":
 		return link.Tracepoint("syscalls", name, objs.SysEnterClose, nil)
 	case "sys_exit_close":

@@ -92,16 +92,20 @@ type gen_httpSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type gen_httpProgramSpecs struct {
-	SysEnterAccept  *ebpf.ProgramSpec `ebpf:"sys_enter_accept"`
-	SysEnterAccept4 *ebpf.ProgramSpec `ebpf:"sys_enter_accept4"`
-	SysEnterClose   *ebpf.ProgramSpec `ebpf:"sys_enter_close"`
-	SysEnterRead    *ebpf.ProgramSpec `ebpf:"sys_enter_read"`
-	SysEnterWrite   *ebpf.ProgramSpec `ebpf:"sys_enter_write"`
-	SysExitAccept   *ebpf.ProgramSpec `ebpf:"sys_exit_accept"`
-	SysExitAccept4  *ebpf.ProgramSpec `ebpf:"sys_exit_accept4"`
-	SysExitClose    *ebpf.ProgramSpec `ebpf:"sys_exit_close"`
-	SysExitRead     *ebpf.ProgramSpec `ebpf:"sys_exit_read"`
-	SysExitWrite    *ebpf.ProgramSpec `ebpf:"sys_exit_write"`
+	SysEnterAccept   *ebpf.ProgramSpec `ebpf:"sys_enter_accept"`
+	SysEnterAccept4  *ebpf.ProgramSpec `ebpf:"sys_enter_accept4"`
+	SysEnterClose    *ebpf.ProgramSpec `ebpf:"sys_enter_close"`
+	SysEnterRead     *ebpf.ProgramSpec `ebpf:"sys_enter_read"`
+	SysEnterRecvfrom *ebpf.ProgramSpec `ebpf:"sys_enter_recvfrom"`
+	SysEnterSendto   *ebpf.ProgramSpec `ebpf:"sys_enter_sendto"`
+	SysEnterWrite    *ebpf.ProgramSpec `ebpf:"sys_enter_write"`
+	SysExitAccept    *ebpf.ProgramSpec `ebpf:"sys_exit_accept"`
+	SysExitAccept4   *ebpf.ProgramSpec `ebpf:"sys_exit_accept4"`
+	SysExitClose     *ebpf.ProgramSpec `ebpf:"sys_exit_close"`
+	SysExitRead      *ebpf.ProgramSpec `ebpf:"sys_exit_read"`
+	SysExitRecvfrom  *ebpf.ProgramSpec `ebpf:"sys_exit_recvfrom"`
+	SysExitSendto    *ebpf.ProgramSpec `ebpf:"sys_exit_sendto"`
+	SysExitWrite     *ebpf.ProgramSpec `ebpf:"sys_exit_write"`
 }
 
 // gen_httpMapSpecs contains maps before they are loaded into the kernel.
@@ -171,16 +175,20 @@ type gen_httpVariables struct {
 //
 // It can be passed to loadGen_httpObjects or ebpf.CollectionSpec.LoadAndAssign.
 type gen_httpPrograms struct {
-	SysEnterAccept  *ebpf.Program `ebpf:"sys_enter_accept"`
-	SysEnterAccept4 *ebpf.Program `ebpf:"sys_enter_accept4"`
-	SysEnterClose   *ebpf.Program `ebpf:"sys_enter_close"`
-	SysEnterRead    *ebpf.Program `ebpf:"sys_enter_read"`
-	SysEnterWrite   *ebpf.Program `ebpf:"sys_enter_write"`
-	SysExitAccept   *ebpf.Program `ebpf:"sys_exit_accept"`
-	SysExitAccept4  *ebpf.Program `ebpf:"sys_exit_accept4"`
-	SysExitClose    *ebpf.Program `ebpf:"sys_exit_close"`
-	SysExitRead     *ebpf.Program `ebpf:"sys_exit_read"`
-	SysExitWrite    *ebpf.Program `ebpf:"sys_exit_write"`
+	SysEnterAccept   *ebpf.Program `ebpf:"sys_enter_accept"`
+	SysEnterAccept4  *ebpf.Program `ebpf:"sys_enter_accept4"`
+	SysEnterClose    *ebpf.Program `ebpf:"sys_enter_close"`
+	SysEnterRead     *ebpf.Program `ebpf:"sys_enter_read"`
+	SysEnterRecvfrom *ebpf.Program `ebpf:"sys_enter_recvfrom"`
+	SysEnterSendto   *ebpf.Program `ebpf:"sys_enter_sendto"`
+	SysEnterWrite    *ebpf.Program `ebpf:"sys_enter_write"`
+	SysExitAccept    *ebpf.Program `ebpf:"sys_exit_accept"`
+	SysExitAccept4   *ebpf.Program `ebpf:"sys_exit_accept4"`
+	SysExitClose     *ebpf.Program `ebpf:"sys_exit_close"`
+	SysExitRead      *ebpf.Program `ebpf:"sys_exit_read"`
+	SysExitRecvfrom  *ebpf.Program `ebpf:"sys_exit_recvfrom"`
+	SysExitSendto    *ebpf.Program `ebpf:"sys_exit_sendto"`
+	SysExitWrite     *ebpf.Program `ebpf:"sys_exit_write"`
 }
 
 func (p *gen_httpPrograms) Close() error {
@@ -189,11 +197,15 @@ func (p *gen_httpPrograms) Close() error {
 		p.SysEnterAccept4,
 		p.SysEnterClose,
 		p.SysEnterRead,
+		p.SysEnterRecvfrom,
+		p.SysEnterSendto,
 		p.SysEnterWrite,
 		p.SysExitAccept,
 		p.SysExitAccept4,
 		p.SysExitClose,
 		p.SysExitRead,
+		p.SysExitRecvfrom,
+		p.SysExitSendto,
 		p.SysExitWrite,
 	)
 }
