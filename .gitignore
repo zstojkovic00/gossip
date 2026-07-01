@@ -10,6 +10,11 @@ gossip-agent/ebpf/vmlinux.h
 gossip-collector/gradle/
 gossip-collector/gradlew
 gossip-collector/gradlew.bat
+gossip-api/gradle
+gossip-api/gradlew
+gossip-api/gradlew.bat
+gossip-api/build
+gossip-api/.gradle
 
 # Node
 node_modules/
