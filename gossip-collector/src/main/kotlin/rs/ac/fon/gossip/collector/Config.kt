@@ -17,10 +17,10 @@ import org.springframework.kafka.core.ConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 
 @Configuration
-open class Config {
+class Config {
 
     @Bean
-    open fun neo4jDriver(
+    fun neo4jDriver(
         @Value("\${spring.neo4j.uri}") neo4jUri: String,
         @Value("\${spring.neo4j.authentication.username}") username: String,
         @Value("\${spring.neo4j.authentication.password}") password: String
@@ -28,7 +28,7 @@ open class Config {
         GraphDatabase.driver(neo4jUri, AuthTokens.basic(username, password))
 
     @Bean
-    open fun kafkaConsumerFactory(
+    fun kafkaConsumerFactory(
         @Value("\${spring.kafka.bootstrap-servers}") bootstrapServers: String,
         @Value("\${spring.kafka.consumer.group-id}") groupId: String,
         @Value("\${spring.kafka.consumer.properties.schema.registry.url}") schemaRegistryUrl: String,
@@ -46,7 +46,7 @@ open class Config {
         )
 
     @Bean
-    open fun kafkaListenerContainerFactory(
+    fun kafkaListenerContainerFactory(
         consumerFactory: ConsumerFactory<String, SpecificRecord>,
         @Value("\${spring.kafka.consumer.concurrency}") concurrency: Int,
     ): ConcurrentKafkaListenerContainerFactory<String, SpecificRecord> =

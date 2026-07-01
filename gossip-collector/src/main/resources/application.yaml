@@ -1,3 +1,6 @@
+gossip:
+  allowed-subnet-prefix: ${GOSSIP_SUBNET_PREFIX:172.}
+
 spring:
   application:
     name: gossip-collector

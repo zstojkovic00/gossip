@@ -2,6 +2,7 @@ package rs.ac.fon.gossip.collector
 
 import gossip.TcpEvent
 import org.neo4j.driver.Values
+import org.springframework.beans.factory.annotation.Value
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.KafkaHeaders
@@ -10,7 +11,8 @@ import org.springframework.stereotype.Service
 
 @Service
 class TcpStateListener(
-    private val neo4jDriver: org.neo4j.driver.Driver
+    private val neo4jDriver: org.neo4j.driver.Driver,
+    @Value("\${gossip.allowed-subnet-prefix}") private val subnetPrefix: String,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -21,30 +23,25 @@ class TcpStateListener(
         @Header(KafkaHeaders.OFFSET) offset: Long,
         @Header(KafkaHeaders.RECEIVED_KEY, required = false) key: String?
     ) {
-        log.info(""" partition: $partition, offset: $offset, key: $key msg: $msg """)
+        if (msg.oldstate != "SYN_SENT") return
+        if (!msg.saddr.startsWith(subnetPrefix) || !msg.daddr.startsWith(subnetPrefix)) return
 
-        val src = "${msg.saddr}:${msg.sport}"
-        val dst = "${msg.daddr}:${msg.dport}"
+        log.info("[TCP] ${msg.comm} ${msg.saddr}:${msg.sport} → ${msg.daddr}:${msg.dport}")
+
         val query = """
-            MERGE (src:SocketAddress {id: ${'$'}srcId})
-              ON CREATE SET src.address = ${'$'}srcAddr, src.port = ${'$'}srcPort, src.comm = ${'$'}srcComm
-
-            MERGE (dst:SocketAddress {id: ${'$'}dstId})
-              ON CREATE SET dst.address = ${'$'}dstAddr, dst.port = ${'$'}dstPort
-
-            MERGE (src)-[:CONNECTED_TO]->(dst)
+            MERGE (src:Service {ip: ${'$'}srcIp})
+              ON CREATE SET src.comm = ${'$'}srcComm
+            MERGE (dst:Service {ip: ${'$'}dstIp})
+            MERGE (src)-[:CALLS {dstPort: ${'$'}dstPort}]->(dst)
         """.trimIndent()
 
         neo4jDriver.session().use { session ->
             session.executeWrite { tx ->
                 tx.run(
                     query, Values.parameters(
-                        "srcId", src,
-                        "srcAddr", msg.saddr,
-                        "srcPort", msg.sport,
+                        "srcIp", msg.saddr,
                         "srcComm", msg.comm,
-                        "dstId", dst,
-                        "dstAddr", msg.daddr,
+                        "dstIp", msg.daddr,
                         "dstPort", msg.dport,
                     )
                 ).consume()

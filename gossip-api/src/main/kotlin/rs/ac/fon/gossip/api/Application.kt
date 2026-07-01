@@ -1,4 +1,4 @@
-package rs.ac.fon.gossip.collector
+package rs.ac.fon.gossip.api
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

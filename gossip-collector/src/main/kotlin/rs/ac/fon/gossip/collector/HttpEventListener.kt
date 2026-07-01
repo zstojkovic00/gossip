@@ -2,6 +2,7 @@ package rs.ac.fon.gossip.collector
 
 import gossip.HttpEvent
 import org.neo4j.driver.Values
+import org.springframework.beans.factory.annotation.Value
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.KafkaHeaders
@@ -10,7 +11,8 @@ import org.springframework.stereotype.Service
 
 @Service
 class HttpEventListener(
-    private val neo4jDriver: org.neo4j.driver.Driver
+    private val neo4jDriver: org.neo4j.driver.Driver,
+    @Value("\${gossip.allowed-subnet-prefix}") private val subnetPrefix: String,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -19,17 +21,16 @@ class HttpEventListener(
         msg: HttpEvent,
         @Header(KafkaHeaders.RECEIVED_PARTITION) partition: Int,
         @Header(KafkaHeaders.OFFSET) offset: Long,
+        @Header(KafkaHeaders.RECEIVED_KEY, required = false) key: String?
     ) {
-        val endpoint = "${msg.method} ${msg.url}"
-        log.info("[HTTP] ${msg.saddr}:${msg.sport} → ${msg.daddr}:${msg.dport} $endpoint → ${msg.status}")
+        if (!msg.saddr.startsWith(subnetPrefix) || !msg.daddr.startsWith(subnetPrefix)) return
+
+        log.info("[HTTP] ${msg.saddr} → ${msg.daddr}:${msg.dport} ${msg.method} ${msg.url} → ${msg.status}")
 
         val query = """
-            MATCH (src:SocketAddress)-[r:CONNECTED_TO]->(dst:SocketAddress)
-            WHERE src.address = ${'$'}saddr
-              AND dst.address = ${'$'}daddr
-              AND dst.port = ${'$'}dport
-              AND NOT ${'$'}endpoint IN coalesce(r.endpoints, [])
-            SET r.endpoints = coalesce(r.endpoints, []) + ${'$'}endpoint
+            MERGE (src:Service {ip: ${'$'}saddr})
+            MERGE (dst:Service {ip: ${'$'}daddr})
+            CREATE (src)-[:CALLS {dstPort: ${'$'}dport, method: ${'$'}method, url: ${'$'}url, status: ${'$'}status, timestamp: ${'$'}timestamp}]->(dst)
         """.trimIndent()
 
         neo4jDriver.session().use { session ->
@@ -39,7 +40,10 @@ class HttpEventListener(
                         "saddr", msg.saddr,
                         "daddr", msg.daddr,
                         "dport", msg.dport,
-                        "endpoint", endpoint,
+                        "method", msg.method,
+                        "url", msg.url,
+                        "status", msg.status,
+                        "timestamp", msg.timestamp,
                     )
                 ).consume()
             }

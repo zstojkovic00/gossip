@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 
 	httpebpf "gossip-agent/ebpf/http"
 	"gossip-agent/ebpf/tcp"
@@ -122,6 +123,10 @@ func listenHTTP(l *httpebpf.Listener, p *kafka.Producer[kafka.HttpEvent]) {
 			return
 		}
 
+		if e.Saddr == "0.0.0.0" || e.Daddr == "0.0.0.0" {
+			continue
+		}
+
 		if e.Direction == "ingress" {
 			req, ok := httpebpf.ParseRequest(e.Msg)
 			if !ok {
@@ -140,14 +145,15 @@ func listenHTTP(l *httpebpf.Listener, p *kafka.Producer[kafka.HttpEvent]) {
 			delete(pending, e.Skaddr)
 
 			if err := p.Send(kafka.HttpEvent{
-				Skaddr: e.Skaddr,
-				Saddr:  e.Saddr,
-				Daddr:  e.Daddr,
-				Sport:  e.Sport,
-				Dport:  e.Dport,
-				Method: req.Method,
-				URL:    req.URL,
-				Status: int32(resp.Status),
+				Skaddr:    e.Skaddr,
+				Saddr:     e.Saddr,
+				Daddr:     e.Daddr,
+				Sport:     e.Sport,
+				Dport:     e.Dport,
+				Method:    req.Method,
+				URL:       req.URL,
+				Status:    int32(resp.Status),
+				Timestamp: time.Now().UnixMilli(),
 			}); err != nil {
 				log.Printf("http send: %v", err)
 				continue

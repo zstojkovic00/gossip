@@ -1,51 +1,35 @@
-.PHONY: gossip-agent gossip-collector streaming frontend demo run clear-demo clear-agent clear-collector clear-streaming-service clear
+.PHONY: infra gossip-collector gossip-api frontend gossip-agent streaming \
+        clear clear-agent clear-infra clear-streaming
 
-## RUN
+COMPOSE := docker compose -f gossip-collector/docker-compose.yaml
+
+infra:
+	$(COMPOSE) up -d kafka neo4j schema-registry kafka-ui
+
 gossip-collector:
-	@echo "[gossip-collector]"
-	docker compose -f gossip-collector/docker-compose.yaml up -d
+	cd gossip-collector && ./gradlew bootRun
 
-gossip-agent:
-	@echo "[gossip-agent]"
-	make -C gossip-agent run
+gossip-api:
+	cd gossip-api && ./gradlew bootRun
 
 frontend:
-	@echo "[gossip-frontend"]
 	cd gossip-frontend && npm run dev
 
+gossip-agent:
+	make -C gossip-agent build
+	cd gossip-agent && sudo ./gossip-agent kafka/kafka-config.json
+
 streaming:
-	@echo "[streaming-service]"
 	docker compose -f streaming-service/docker-compose.yml up -d
 
-run: gossip-collector gossip-agent
-
-# CLEAR
+## Clear
 clear-agent:
-	@echo "[clear-agent]"
-	sudo kill $$(pgrep gossip-agent) 2>/dev/null
+	-sudo pkill -x gossip-agent 2>/dev/null; true
 
-clear-collector:
-	@echo "[clear-collector]"
-	docker compose -f gossip-collector/docker-compose.yaml down -v
-	docker compose -f gossip-collector/docker-compose.yaml up -d
-
-clear-frontend:
-	@echo "[clear-frontend]"
-	pkill -f "npm run dev" 2>/dev/null
+clear-infra:
+	-$(COMPOSE) down -v
 
 clear-streaming:
-	@echo "[clear-streaming-service]"
-	docker compose -f streaming-service/docker-compose.yml down -v
+	-docker compose -f streaming-service/docker-compose.yml down -v
 
-clear: clear-collector clear-streaming clear-frontend clear-agent
-
-## ...
-demo:
-	@echo "Starting HTTP server on port 8085..."
-	python3 -m http.server 8085 &>/dev/null &
-	@echo "Sending requests every 3 seconds. Press Ctrl+C to stop."
-	while true; do curl -s http://localhost:8085 > /dev/null; sleep 15; done
-
-clear-demo:
-	@echo "[clear-demo]"
-	pkill -f "python3 -m http.server" 2>/dev/null
+clear: clear-agent clear-infra clear-streaming
