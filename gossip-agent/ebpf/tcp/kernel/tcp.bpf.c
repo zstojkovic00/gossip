@@ -6,6 +6,7 @@
 
 
 #define AF_INET     2   // IPv4
+#define AF_INET6    10  // IPv6
 #define IPPROTO_TCP 6   // TCP protokol
 
 struct tcp_event_t  {
@@ -26,13 +27,43 @@ struct {
     __uint(max_entries, 1 << 24);
 } events SEC(".maps"); 
 
+// IPv4 adresa upakovana u IPv6 (::ffff:a.b.c.d), koriste je dual-stack soketi
+static __always_inline bool is_v4_mapped(const __u8 *addr)
+{
+    #pragma unroll
+    for (int i = 0; i < 10; i++) {
+        if (addr[i] != 0) return false;
+    }
+    return addr[10] == 0xff && addr[11] == 0xff;
+}
+
 // eBPF
 // bpf()
 SEC("tracepoint/sock/inet_sock_set_state")
 int consume_tcp_event(struct trace_event_raw_inet_sock_set_state *args) // cat /sys/kernel/debug/tracing/events/sock/inet_sock_set_state/format
 {
     if (args->protocol != IPPROTO_TCP) return 0;
-    if (args->family != AF_INET) return 0;
+
+    u32 saddr;
+    u32 daddr;
+
+    // IPv4
+    if (args->family == AF_INET) {
+        bpf_probe_read_kernel(&saddr, sizeof(saddr), args->saddr);
+        bpf_probe_read_kernel(&daddr, sizeof(daddr), args->daddr);
+    }
+    // IPv4 adrese upakovane u IPv6 format (::ffff:)
+    else if (args->family == AF_INET6) {
+        __u8 saddr_v6[16];
+        __u8 daddr_v6[16];
+        bpf_probe_read_kernel(saddr_v6, sizeof(saddr_v6), args->saddr_v6);
+        bpf_probe_read_kernel(daddr_v6, sizeof(daddr_v6), args->daddr_v6);
+        if (!is_v4_mapped(saddr_v6) || !is_v4_mapped(daddr_v6)) return 0;
+        __builtin_memcpy(&saddr, &saddr_v6[12], 4);
+        __builtin_memcpy(&daddr, &daddr_v6[12], 4);
+    } else {
+        return 0;
+    }
 
     struct tcp_event_t *e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
 
@@ -43,8 +74,8 @@ int consume_tcp_event(struct trace_event_raw_inet_sock_set_state *args) // cat /
 
     e->skaddr = (u64)args->skaddr;
     e->pid   = bpf_get_current_pid_tgid() >> 32;
-    __builtin_memcpy(&e->saddr, args->saddr, 4);
-    __builtin_memcpy(&e->daddr, args->daddr, 4);
+    e->saddr = saddr;
+    e->daddr = daddr;
     e->sport = args->sport;
     e->dport = args->dport;
     e->oldstate = args->oldstate;

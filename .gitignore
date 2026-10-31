@@ -2,10 +2,13 @@
 .idea/
 
 # Go binaries
-gossip-agent/tcp_listener
-gossip-agent/ebpf/gen_tcp_bpfel.go
-gossip-agent/ebpf/gen_tcp_bpfel.o
+gossip-agent/gossip-agent
+gossip-agent/ebpf/*/gen_*_bpfel.go
+gossip-agent/ebpf/*/gen_*_bpfel.o
 gossip-agent/ebpf/vmlinux.h
+
+# Runtime logs
+logs/
 # Gradle
 gossip-collector/gradle/
 gossip-collector/gradlew
