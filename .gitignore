@@ -9,6 +9,9 @@ gossip-agent/ebpf/vmlinux.h
 
 # Runtime logs
 logs/
+
+# E2E run outputs
+e2e/runs/
 # Gradle
 gossip-collector/gradle/
 gossip-collector/gradlew
