@@ -19,7 +19,8 @@
  */
 
 
- // Kod je adaptiran tako da radi sa cilium/ebpf go
+// Based on the Pixie HTTP tracing example from https://www.datadoghq.com/blog/ebpf-guide/,
+// substantially modified and ported to cilium/ebpf.
 
 #include "vmlinux.h"
 #include <bpf/bpf_helpers.h>

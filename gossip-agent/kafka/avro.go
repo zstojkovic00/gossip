@@ -13,7 +13,7 @@ var tcpEventSchema string
 //go:embed schemas/http_event.avsc
 var httpEventSchema string
 
-// Confluent's Schema Registry wire protokol format: [0x00 magic byte][schema ID 4B big-endian][avro payload]
+// Confluent's Schema Registry wire protocol format: [0x00 magic byte][schema ID 4B big-endian][avro payload]
 func encode[T any](schema avro.Schema, schemaID int, event T) ([]byte, error) {
 	avroBytes, err := avro.Marshal(schema, event)
 	if err != nil {

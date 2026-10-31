@@ -1,7 +1,7 @@
-// Obrisi sve nodove i relacije
+// Delete all nodes and relationships
 MATCH (n) DETACH DELETE n
 
-// Nadji sve CONNECTED_TO gde je dst.port jednak 8085
+// Find all CONNECTED_TO relationships where dst.port is 8085
 MATCH (src:SocketAddress)-[r:CONNECTED_TO]->(dst:SocketAddress)
   WHERE dst.port = 8085
   RETURN src, r, dst

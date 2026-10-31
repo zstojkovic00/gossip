@@ -1,5 +1,5 @@
-// BTF je mapa koja pokazuje kako izgledaju sve kernel strukture
-// /sys/kernel/btf/vmlinux je fajl koji kernel eksportuje i sadrzi sve te BTF informacije u binarnom formatu
+// BTF describes the layout of all kernel structures
+// /sys/kernel/btf/vmlinux is exported by the kernel and contains this BTF information in binary form
 #include "vmlinux.h" // bpftool btf dump file /sys/kernel/btf/vmlinux format c > src/bpf/vmlinux.h 
 
 #include <bpf/bpf_helpers.h> // https://www.man7.org/linux/man-pages/man7/bpf-helpers.7.html
@@ -7,27 +7,27 @@
 
 #define AF_INET     2   // IPv4
 #define AF_INET6    10  // IPv6
-#define IPPROTO_TCP 6   // TCP protokol
+#define IPPROTO_TCP 6   // TCP protocol
 
 struct tcp_event_t  {
-    u64 skaddr; // pointer na struct sock
+    u64 skaddr; // pointer to struct sock
     u32 pid;
-    u32 saddr; // dolazni ip (IPv4)
-    u32 daddr; // odlazni IP (IPv4)
-    u32 oldstate; // state iz koga prelazi
-    u32 newstate; // state u koji prelazi
-    u16 sport; // dolazni port
-    u16 dport; // odlazni port
-    u8 comm[16]; // ime procesa
+    u32 saddr; // source IP (IPv4)
+    u32 daddr; // destination IP (IPv4)
+    u32 oldstate; // state before the transition
+    u32 newstate; // state after the transition
+    u16 sport; // source port
+    u16 dport; // destination port
+    u8 comm[16]; // process name
 };
 
-// Kanal za slanje dogadjaja iz kernela u Go program (ring buffer)
+// Channel for sending events from the kernel to the Go program (ring buffer)
 struct {        
     __uint(type, BPF_MAP_TYPE_RINGBUF);                                                                                                               
     __uint(max_entries, 1 << 24);
 } events SEC(".maps"); 
 
-// IPv4 adresa upakovana u IPv6 (::ffff:a.b.c.d), koriste je dual-stack soketi
+// IPv4 address wrapped in IPv6 (::ffff:a.b.c.d), used by dual-stack sockets
 static __always_inline bool is_v4_mapped(const __u8 *addr)
 {
     #pragma unroll
@@ -52,7 +52,7 @@ int consume_tcp_event(struct trace_event_raw_inet_sock_set_state *args) // cat /
         bpf_probe_read_kernel(&saddr, sizeof(saddr), args->saddr);
         bpf_probe_read_kernel(&daddr, sizeof(daddr), args->daddr);
     }
-    // IPv4 adrese upakovane u IPv6 format (::ffff:)
+    // IPv4 addresses wrapped in IPv6 format (::ffff:)
     else if (args->family == AF_INET6) {
         __u8 saddr_v6[16];
         __u8 daddr_v6[16];
