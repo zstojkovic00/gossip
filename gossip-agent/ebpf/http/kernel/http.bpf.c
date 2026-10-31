@@ -313,7 +313,8 @@ static __inline void process_syscall_data(u64 id,
     event->attr.daddr  = conn_info->daddr;
     event->attr.sport  = conn_info->sport;
     event->attr.dport  = conn_info->dport;
-    bpf_probe_read_user(event->msg, MAX_MSG_SIZE, (void *)args->buf);
+    u32 size = bytes_count < MAX_MSG_SIZE ? bytes_count : MAX_MSG_SIZE;
+    bpf_probe_read_user(event->msg, size, (void *)args->buf);
     bpf_ringbuf_submit(event, 0);
 }
 

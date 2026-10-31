@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -114,7 +116,7 @@ func listenTCP(l *tcp.Listener, p *kafka.Producer[kafka.TcpEvent]) {
 }
 
 func listenHTTP(l *httpebpf.Listener, p *kafka.Producer[kafka.HttpEvent]) {
-	pending := make(map[string]httpebpf.Request)
+	pending := make(map[string][]httpebpf.Request)
 
 	for {
 		e, err := l.Read()
@@ -122,6 +124,11 @@ func listenHTTP(l *httpebpf.Listener, p *kafka.Producer[kafka.HttpEvent]) {
 			log.Printf("http read: %v", err)
 			return
 		}
+
+		conn := fmt.Sprintf("%d-%d-%d", e.Pid, e.Fd, e.Tsid)
+
+		log.Printf("[RAW] conn=%s %-7s size=%-6d %s:%d → %s:%d %q",
+			conn, e.Direction, len(e.Msg), e.Saddr, e.Sport, e.Daddr, e.Dport, firstLine(e.Msg))
 
 		if e.Saddr == "0.0.0.0" || e.Daddr == "0.0.0.0" {
 			continue
@@ -132,17 +139,23 @@ func listenHTTP(l *httpebpf.Listener, p *kafka.Producer[kafka.HttpEvent]) {
 			if !ok {
 				continue
 			}
-			pending[e.Skaddr] = req
+			pending[conn] = append(pending[conn], req)
 		} else {
 			resp, ok := httpebpf.ParseResponse(e.Msg)
 			if !ok {
 				continue
 			}
-			req, exists := pending[e.Skaddr]
-			if !exists {
+			queue := pending[conn]
+			if len(queue) == 0 {
+				log.Printf("[RAW] conn=%s response %d without a pending request", conn, resp.Status)
 				continue
 			}
-			delete(pending, e.Skaddr)
+			req := queue[0]
+			if len(queue) == 1 {
+				delete(pending, conn)
+			} else {
+				pending[conn] = queue[1:]
+			}
 
 			if err := p.Send(kafka.HttpEvent{
 				Skaddr:    e.Skaddr,
@@ -163,4 +176,12 @@ func listenHTTP(l *httpebpf.Listener, p *kafka.Producer[kafka.HttpEvent]) {
 				e.Saddr, e.Sport, e.Daddr, e.Dport, req.Method, req.URL, resp.Status)
 		}
 	}
+}
+
+func firstLine(msg string) string {
+	line, _, _ := strings.Cut(msg, "\r\n")
+	if len(line) > 100 {
+		return line[:100]
+	}
+	return line
 }
