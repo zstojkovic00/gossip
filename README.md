@@ -6,7 +6,12 @@ Passive observability for microservice architectures. An eBPF agent captures TCP
 gossip-agent (eBPF, Go) → Kafka → gossip-collector (Kotlin) → Neo4j → gossip-api (Kotlin) → gossip-frontend (React)
 ```
 
-`streaming-service` is the demo microservice system being observed.
+The observed demo system is [streaming-service](https://github.com/zstojkovic00/streaming-service), a separate repository. Clone it into `streaming-service/` and build its images as described in its `DEVELOPMENT.md`:
+
+```
+git clone https://github.com/zstojkovic00/streaming-service.git
+cd streaming-service && mvn compile jib:dockerBuild
+```
 
 ## Running
 
