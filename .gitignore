@@ -13,6 +13,18 @@ logs/
 # E2E run outputs
 e2e/runs/
 
+# Gradle
+gossip-collector/gradle/
+gossip-collector/gradlew
+gossip-collector/gradlew.bat
+gossip-collector/build/
+gossip-collector/.gradle/
+gossip-api/gradle/
+gossip-api/gradlew
+gossip-api/gradlew.bat
+gossip-api/build/
+gossip-api/.gradle/
+
 # Node
 node_modules/
 

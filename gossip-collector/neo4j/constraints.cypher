@@ -1,0 +1,2 @@
+CREATE CONSTRAINT service_ip IF NOT EXISTS FOR (s:Service) REQUIRE s.ip IS UNIQUE;
+CREATE CONSTRAINT interaction_key IF NOT EXISTS FOR (i:Interaction) REQUIRE i.key IS UNIQUE;

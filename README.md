@@ -3,10 +3,10 @@
 Passive observability for microservice architectures. An eBPF agent captures TCP connections and HTTP traffic at the Linux kernel level, without changing application code, and sends them through Kafka to a collector that builds a service communication graph in Neo4j.
 
 ```
-gossip-agent (eBPF, Go) → Kafka → gossip-collector (Go) → Neo4j → gossip-api (Go) → gossip-frontend (React)
+gossip-agent (eBPF, Go) → Kafka → gossip-collector (Kotlin) → Neo4j → gossip-api (Kotlin) → gossip-frontend (React)
 ```
 
-The observed demo system is [streaming-service](https://github.com/zstojkovic00/streaming-service), a separate repository. Clone it into `streaming-service/` and build its images as described in its `DEVELOPMENT.md`:
+The observed demo system is [streaming-service](https://github.com/zstojkovic00/streaming-service), a separate repository. Clone it into `streaming-service/`:
 
 ```
 git clone https://github.com/zstojkovic00/streaming-service.git
@@ -56,7 +56,7 @@ docker compose -f streaming-service/docker-compose.yml up -d
 Wait until the services register with Eureka (usually 30 to 60 seconds). Repeat until it returns `200`:
 
 ```
-curl -s -o /dev/null -w '%{http_code}\n' localhost:8080/videos
+until [ "$(curl -s -o /dev/null -w '%{http_code}' localhost:8080/videos)" = "200" ]; do sleep 3; done; echo OK
 ```
 
 ### 6. Traffic
