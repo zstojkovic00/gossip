@@ -7,7 +7,7 @@ infra:
 	$(COMPOSE) up -d kafka neo4j schema-registry kafka-ui
 
 gossip-collector:
-	cd gossip-platform && go run ./cmd/collector
+	cd gossip-platform && go run ./cmd/collector internal/kafka/kafka-config.json
 
 gossip-api:
 	cd gossip-platform && NEO4J_URI=bolt://localhost:7687 NEO4J_USER=neo4j NEO4J_PASSWORD=password go run ./cmd/api
