@@ -3,7 +3,7 @@
 Passive observability for microservice architectures. An eBPF agent captures TCP connections and HTTP traffic at the Linux kernel level, without changing application code, and sends them through Kafka to a collector that builds a service communication graph in Neo4j.
 
 ```
-gossip-agent (eBPF, Go) → Kafka → gossip-collector (Kotlin) → Neo4j → gossip-api (Kotlin) → gossip-frontend (React)
+gossip-agent (eBPF, Go) → Kafka → gossip-collector (Go) → Neo4j → gossip-api (Go) → gossip-frontend (React)
 ```
 
 The observed demo system is [streaming-service](https://github.com/zstojkovic00/streaming-service), a separate repository. Clone it into `streaming-service/` and build its images as described in its `DEVELOPMENT.md`:
@@ -29,13 +29,13 @@ make infra
 ### 2. Collector
 
 ```
-cd gossip-collector && ./gradlew bootRun 2>&1 | tee ../logs/gossip-collector.log
+make gossip-collector 2>&1 | tee logs/gossip-collector.log
 ```
 
 ### 3. API
 
 ```
-cd gossip-api && ./gradlew bootRun 2>&1 | tee ../logs/gossip-api.log
+make gossip-api 2>&1 | tee logs/gossip-api.log
 ```
 
 ### 4. Agent
