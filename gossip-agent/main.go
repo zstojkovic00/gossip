@@ -11,6 +11,8 @@ import (
 	httpebpf "gossip-agent/ebpf/http"
 	"gossip-agent/ebpf/tcp"
 	"gossip-agent/kafka"
+
+	"golang.org/x/sys/unix"
 )
 
 func main() {
@@ -93,15 +95,16 @@ func listenTCP(l *tcp.Listener, p *kafka.Producer[kafka.TcpEvent]) {
 		}
 
 		if err := p.Send(kafka.TcpEvent{
-			Skaddr:   event.Skaddr,
-			Pid:      event.Pid,
-			Saddr:    event.Saddr,
-			Daddr:    event.Daddr,
-			Sport:    event.Sport,
-			Dport:    event.Dport,
-			NewState: event.NewState,
-			OldState: event.OldState,
-			Comm:     event.Comm,
+			Skaddr:    event.Skaddr,
+			Pid:       event.Pid,
+			Saddr:     event.Saddr,
+			Daddr:     event.Daddr,
+			Sport:     event.Sport,
+			Dport:     event.Dport,
+			NewState:  event.NewState,
+			OldState:  event.OldState,
+			Comm:      event.Comm,
+			Timestamp: toUnixMilli(event.TimestampNs),
 		}); err != nil {
 			log.Printf("tcp send: %v", err)
 			continue
@@ -166,7 +169,7 @@ func listenHTTP(l *httpebpf.Listener, p *kafka.Producer[kafka.HttpEvent]) {
 				Method:    req.Method,
 				URL:       req.URL,
 				Status:    int32(resp.Status),
-				Timestamp: time.Now().UnixMilli(),
+				Timestamp: toUnixMilli(e.TimestampNs),
 			}); err != nil {
 				log.Printf("http send: %v", err)
 				continue
@@ -176,6 +179,18 @@ func listenHTTP(l *httpebpf.Listener, p *kafka.Producer[kafka.HttpEvent]) {
 				e.Saddr, e.Sport, e.Daddr, e.Dport, req.Method, req.URL, resp.Status)
 		}
 	}
+}
+
+var bootTime = func() time.Time {
+	var ts unix.Timespec
+	if err := unix.ClockGettime(unix.CLOCK_BOOTTIME, &ts); err != nil {
+		log.Fatalf("clock_gettime: %v", err)
+	}
+	return time.Now().Add(-time.Duration(ts.Nano()))
+}()
+
+func toUnixMilli(bootNs uint64) int64 {
+	return bootTime.Add(time.Duration(bootNs)).UnixMilli()
 }
 
 func firstLine(msg string) string {

@@ -11,6 +11,7 @@
     {"name": "dport", "type": "int"},
     {"name": "newstate", "type": "string"},
     {"name": "oldstate", "type": "string"},
-    {"name": "comm",  "type": "string"}
+    {"name": "comm",  "type": "string"},
+    {"name": "timestamp", "type": "long"}
   ]
 }

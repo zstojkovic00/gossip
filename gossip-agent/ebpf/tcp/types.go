@@ -22,40 +22,43 @@ const (
 )
 
 type rawEvent struct {
-	Skaddr   uint64
-	Pid      uint32
-	Saddr    uint32
-	Daddr    uint32
-	OldState uint32
-	NewState uint32
-	Sport    uint16
-	Dport    uint16
-	Comm     [16]byte
+	Skaddr      uint64
+	TimestampNs uint64
+	Pid         uint32
+	Saddr       uint32
+	Daddr       uint32
+	OldState    uint32
+	NewState    uint32
+	Sport       uint16
+	Dport       uint16
+	Comm        [16]byte
 }
 
 type Event struct {
-	Skaddr   string
-	Pid      int32
-	Saddr    string
-	Daddr    string
-	OldState string
-	NewState string
-	Sport    int32
-	Dport    int32
-	Comm     string
+	TimestampNs uint64
+	Skaddr      string
+	Pid         int32
+	Saddr       string
+	Daddr       string
+	OldState    string
+	NewState    string
+	Sport       int32
+	Dport       int32
+	Comm        string
 }
 
 func parseEvent(raw rawEvent) Event {
 	return Event{
-		Skaddr:   fmt.Sprintf("0x%x", raw.Skaddr),
-		Pid:      int32(raw.Pid),
-		Saddr:    toIPv4(raw.Saddr).String(),
-		Daddr:    toIPv4(raw.Daddr).String(),
-		Sport:    int32(raw.Sport),
-		Dport:    int32(raw.Dport),
-		OldState: toTcpState(raw.OldState),
-		NewState: toTcpState(raw.NewState),
-		Comm:     nullTerminatedString(raw.Comm[:]),
+		TimestampNs: raw.TimestampNs,
+		Skaddr:      fmt.Sprintf("0x%x", raw.Skaddr),
+		Pid:         int32(raw.Pid),
+		Saddr:       toIPv4(raw.Saddr).String(),
+		Daddr:       toIPv4(raw.Daddr).String(),
+		Sport:       int32(raw.Sport),
+		Dport:       int32(raw.Dport),
+		OldState:    toTcpState(raw.OldState),
+		NewState:    toTcpState(raw.NewState),
+		Comm:        nullTerminatedString(raw.Comm[:]),
 	}
 }
 

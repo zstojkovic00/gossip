@@ -304,7 +304,7 @@ static __inline void process_syscall_data(u64 id,
         return;
     }
 
-    event->attr.timestamp_ns = bpf_ktime_get_ns();
+    event->attr.timestamp_ns = bpf_ktime_get_boot_ns();
     event->attr.conn_id = conn_info->conn_id;
     event->attr.direction = direction;
     event->attr.msg_size = bytes_count;
