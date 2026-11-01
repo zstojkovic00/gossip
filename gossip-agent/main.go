@@ -88,7 +88,7 @@ func listenTCP(l *tcp.Listener, p *kafka.Producer[kafka.TcpEvent]) {
 			return
 		}
 
-		if event.NewState != "ESTABLISHED" {
+		if event.OldState != "SYN_SENT" || event.NewState != "ESTABLISHED" {
 			continue
 		}
 
