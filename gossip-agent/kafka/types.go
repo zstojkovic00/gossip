@@ -1,7 +1,6 @@
 package kafka
 
 type TcpEvent struct {
-	Skaddr    string `avro:"skaddr"`
 	Pid       int32  `avro:"pid"`
 	Saddr     string `avro:"saddr"`
 	Daddr     string `avro:"daddr"`
@@ -14,7 +13,6 @@ type TcpEvent struct {
 }
 
 type HttpEvent struct {
-	Skaddr    string `avro:"skaddr"`
 	Saddr     string `avro:"saddr"`
 	Daddr     string `avro:"daddr"`
 	Sport     int32  `avro:"sport"`

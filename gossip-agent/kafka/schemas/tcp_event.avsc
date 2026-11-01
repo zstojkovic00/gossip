@@ -3,7 +3,6 @@
   "name": "TcpEvent",
   "namespace": "gossip",
   "fields": [
-    {"name": "skaddr", "type": "string"},
     {"name": "pid",   "type": "long"},
     {"name": "saddr", "type": "string"},
     {"name": "daddr", "type": "string"},

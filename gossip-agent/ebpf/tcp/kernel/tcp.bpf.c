@@ -10,7 +10,6 @@
 #define IPPROTO_TCP 6   // TCP protocol
 
 struct tcp_event_t  {
-    u64 skaddr; // pointer to struct sock
     u64 timestamp_ns; // nanoseconds since boot, including suspend
     u32 pid;
     u32 saddr; // source IP (IPv4)
@@ -73,7 +72,6 @@ int consume_tcp_event(struct trace_event_raw_inet_sock_set_state *args) // cat /
         return 1;
     }
 
-    e->skaddr = (u64)args->skaddr;
     e->timestamp_ns = bpf_ktime_get_boot_ns();
     e->pid   = bpf_get_current_pid_tgid() >> 32;
     e->saddr = saddr;

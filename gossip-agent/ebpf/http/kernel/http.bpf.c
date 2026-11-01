@@ -71,9 +71,6 @@ struct conn_info_t {
     // A flag indicating we identified the connection as HTTP.
     bool is_http;
 
-    // Kernel socket pointer
-    u64 skaddr;
-
     // Connection tuple (from client perspective, matching TCP events)
     u32 saddr;
     u32 daddr;
@@ -120,9 +117,6 @@ struct socket_data_event_t {
     // A 0-based position number for this event on the connection, in terms of byte position.
     // The position is for the first byte of this message.
     u64 pos;
-
-    // Kernel socket pointer
-    u64 skaddr;
 
     // Connection tuple (from client perspective, matching TCP events)
     u32 saddr;
@@ -215,7 +209,6 @@ static __inline void fill_sk_fields(struct conn_info_t *conn_info, s32 fd) {
     struct sock *sk;
     if (bpf_core_read(&sk, sizeof(sk), &sock->sk) != 0) return;
 
-    conn_info->skaddr = (u64)sk;
     conn_info->saddr  = BPF_CORE_READ(sk, __sk_common.skc_daddr);
     conn_info->daddr  = BPF_CORE_READ(sk, __sk_common.skc_rcv_saddr);
     conn_info->sport  = bpf_ntohs(BPF_CORE_READ(sk, __sk_common.skc_dport));
@@ -309,7 +302,6 @@ static __inline void process_syscall_data(u64 id,
     event->attr.direction = direction;
     event->attr.msg_size = bytes_count;
     event->attr.pos = pos;
-    event->attr.skaddr = conn_info->skaddr;
     event->attr.saddr  = conn_info->saddr;
     event->attr.daddr  = conn_info->daddr;
     event->attr.sport  = conn_info->sport;

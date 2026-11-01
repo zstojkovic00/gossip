@@ -2,7 +2,6 @@ package tcp
 
 import (
 	"encoding/binary"
-	"fmt"
 	"net"
 )
 
@@ -22,7 +21,6 @@ const (
 )
 
 type rawEvent struct {
-	Skaddr      uint64
 	TimestampNs uint64
 	Pid         uint32
 	Saddr       uint32
@@ -36,7 +34,6 @@ type rawEvent struct {
 
 type Event struct {
 	TimestampNs uint64
-	Skaddr      string
 	Pid         int32
 	Saddr       string
 	Daddr       string
@@ -50,7 +47,6 @@ type Event struct {
 func parseEvent(raw rawEvent) Event {
 	return Event{
 		TimestampNs: raw.TimestampNs,
-		Skaddr:      fmt.Sprintf("0x%x", raw.Skaddr),
 		Pid:         int32(raw.Pid),
 		Saddr:       toIPv4(raw.Saddr).String(),
 		Daddr:       toIPv4(raw.Daddr).String(),

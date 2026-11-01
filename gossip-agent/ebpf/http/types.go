@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/binary"
-	"fmt"
 	"net"
 )
 
@@ -17,7 +16,6 @@ type rawDataAttr struct {
 	Pad         [4]byte
 	MsgSize     uint64
 	Pos         uint64
-	Skaddr      uint64
 	Saddr       uint32
 	Daddr       uint32
 	Sport       uint16
@@ -37,7 +35,6 @@ type DataEvent struct {
 	Tsid        uint64
 	Direction   string
 	Pos         uint64
-	Skaddr      string
 	Saddr       string
 	Daddr       string
 	Sport       int32
@@ -63,7 +60,6 @@ func parseDataEvent(raw rawDataEvent) DataEvent {
 		Tsid:        raw.Attr.ConnIdTsid,
 		Direction:   direction,
 		Pos:         raw.Attr.Pos,
-		Skaddr:      fmt.Sprintf("0x%x", raw.Attr.Skaddr),
 		Saddr:       toIPv4(raw.Attr.Saddr),
 		Daddr:       toIPv4(raw.Attr.Daddr),
 		Sport:       int32(raw.Attr.Sport),

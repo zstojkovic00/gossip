@@ -95,7 +95,6 @@ func listenTCP(l *tcp.Listener, p *kafka.Producer[kafka.TcpEvent]) {
 		}
 
 		if err := p.Send(kafka.TcpEvent{
-			Skaddr:    event.Skaddr,
 			Pid:       event.Pid,
 			Saddr:     event.Saddr,
 			Daddr:     event.Daddr,
@@ -161,7 +160,6 @@ func listenHTTP(l *httpebpf.Listener, p *kafka.Producer[kafka.HttpEvent]) {
 			}
 
 			if err := p.Send(kafka.HttpEvent{
-				Skaddr:    e.Skaddr,
 				Saddr:     e.Saddr,
 				Daddr:     e.Daddr,
 				Sport:     e.Sport,

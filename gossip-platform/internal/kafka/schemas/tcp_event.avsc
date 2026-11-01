@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "TcpEvent",
+  "namespace": "gossip",
+  "fields": [
+    {"name": "pid",   "type": "long"},
+    {"name": "saddr", "type": "string"},
+    {"name": "daddr", "type": "string"},
+    {"name": "sport", "type": "int"},
+    {"name": "dport", "type": "int"},
+    {"name": "newstate", "type": "string"},
+    {"name": "oldstate", "type": "string"},
+    {"name": "comm",  "type": "string"},
+    {"name": "timestamp", "type": "long"}
+  ]
+}
