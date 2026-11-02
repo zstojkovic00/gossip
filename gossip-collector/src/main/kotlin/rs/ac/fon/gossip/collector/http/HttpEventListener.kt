@@ -10,6 +10,6 @@ class HttpEventListener(
 ) {
     @KafkaListener(topics = ["\${spring.kafka.topics.http-event}"])
     fun onHttpEvent(msg: HttpEvent) {
-        httpInteractionService.record(msg)
+        httpInteractionService.process(msg)
     }
 }

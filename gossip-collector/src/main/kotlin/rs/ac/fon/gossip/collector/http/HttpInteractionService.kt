@@ -12,7 +12,7 @@ class HttpInteractionService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun record(msg: HttpEvent) {
+    fun process(msg: HttpEvent) {
         if (!msg.saddr.startsWith(subnetPrefix) || !msg.daddr.startsWith(subnetPrefix)) return
 
         log.info("[HTTP] ${msg.saddr} → ${msg.daddr}:${msg.dport} ${msg.method} ${msg.url} → ${msg.status}")

@@ -10,6 +10,6 @@ class TcpEventListener(
 ) {
     @KafkaListener(topics = ["\${spring.kafka.topics.tcp-event}"])
     fun onTcpEvent(msg: TcpEvent) {
-        connectionService.record(msg)
+        connectionService.process(msg)
     }
 }

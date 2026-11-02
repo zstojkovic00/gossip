@@ -1,22 +1,13 @@
 import {type Node, type Edge} from '@xyflow/react'
-import {type ServiceRelation} from './api.tsx'
-
-export interface HttpCall {
-    method: string
-    url: string
-    status: number
-    timestamp: number | null
-    payload: string | null
-}
+import {type Connection, type Interaction, type Topology} from './api.tsx'
 
 export interface PortSection {
-    dstPort: number | null
-    calls: HttpCall[]
+    dport: number
+    connection: Connection | null
+    interactions: Interaction[]
 }
 
 export interface EdgeData {
-    srcProcessName: string | null
-    dstProcessName: string | null
     ports: PortSection[]
 }
 
@@ -65,47 +56,39 @@ function applyTopologicalOrder(nodes: Node[], edges: Edge[]): Node[] {
         }))
     )
 }
-export function toGraph(serviceRelations: ServiceRelation[]): { nodes: Node[], edges: Edge[] } {
-    const services = new Set<string>()
-    serviceRelations.forEach(sr => {
-        services.add(sr.src)
-        services.add(sr.dst)
-    })
-
-    const nodes: Node[] = [...services].map(ip => ({
-        id: ip,
+export function toGraph(topology: Topology): { nodes: Node[], edges: Edge[] } {
+    const nodes: Node[] = topology.services.map(service => ({
+        id: service.ip,
         position: {x: 0, y: 0},
-        data: {label: ip},
+        data: {label: service.name ?? service.ip},
     }))
 
-    // group by (src, dst) pair, one visual edge per pair, all ports inside
-    const edgeMap = new Map<string, ServiceRelation[]>()
-    serviceRelations.forEach(sr => {
-        const key = `${sr.src}->${sr.dst}`
-        if (!edgeMap.has(key)) edgeMap.set(key, [])
-        edgeMap.get(key)!.push(sr)
+    // one visual edge per (src, dst) pair, one section per port inside it
+    const edgeMap = new Map<string, Map<number, PortSection>>()
+
+    function portSection(src: string, dst: string, dport: number): PortSection {
+        const key = `${src}->${dst}`
+        if (!edgeMap.has(key)) edgeMap.set(key, new Map())
+        const ports = edgeMap.get(key)!
+        if (!ports.has(dport)) ports.set(dport, {dport, connection: null, interactions: []})
+        return ports.get(dport)!
+    }
+
+    topology.connections.forEach(c => {
+        portSection(c.src, c.dst, c.dport).connection = c
+    })
+    topology.interactions.forEach(i => {
+        portSection(i.src, i.dst, i.dport).interactions.push(i)
     })
 
-    const edges: Edge[] = [...edgeMap.entries()].map(([key, relations]) => {
-        const first = relations[0]
-
-        // group by dstPort, one section per port in the sidebar
-        const portMap = new Map<number | null, HttpCall[]>()
-        relations.forEach(r => {
-            if (!portMap.has(r.dstPort)) portMap.set(r.dstPort, [])
-            if (r.method !== null && r.url !== null && r.status !== null) {
-                portMap.get(r.dstPort)!.push({method: r.method, url: r.url, status: r.status, timestamp: r.timestamp, payload: null})
-            }
-        })
-
+    const edges: Edge[] = [...edgeMap.entries()].map(([key, ports]) => {
+        const [source, target] = key.split('->')
         return {
             id: key,
-            source: first.src,
-            target: first.dst,
+            source,
+            target,
             data: {
-                srcProcessName: first.srcProcessName,
-                dstProcessName: first.dstProcessName,
-                ports: [...portMap.entries()].map(([dstPort, calls]) => ({dstPort, calls})),
+                ports: [...ports.values()],
             } satisfies EdgeData,
         }
     })

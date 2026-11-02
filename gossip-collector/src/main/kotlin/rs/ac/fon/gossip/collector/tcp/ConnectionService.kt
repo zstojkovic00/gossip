@@ -12,7 +12,7 @@ class ConnectionService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun record(msg: TcpEvent) {
+    fun process(msg: TcpEvent) {
         if (!msg.saddr.startsWith(subnetPrefix) || !msg.daddr.startsWith(subnetPrefix)) return
 
         log.info("[TCP] ${msg.comm} ${msg.saddr}:${msg.sport} → ${msg.daddr}:${msg.dport}")

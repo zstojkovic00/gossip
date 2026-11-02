@@ -9,7 +9,7 @@ interface Props {
     onClose: () => void
 }
 
-type SortKey = 'timestamp' | 'status'
+type SortKey = 'lastSeen' | 'status' | 'count'
 type SortDir = 'asc' | 'desc'
 
 function statusClass(status: number): string {
@@ -18,24 +18,20 @@ function statusClass(status: number): string {
     return 'status--2xx'
 }
 
-function formatTimestamp(ts: number | null): string {
-    if (ts === null) return '—'
-    return new Date(ts).toLocaleTimeString()
+function formatTimestamp(ts: number): string {
+    return new Date(ts).toLocaleString()
 }
 
 export default function BottomPanel({src, dst, data, onClose}: Props) {
-    const ports = data.ports.map(p => p.dstPort)
+    const ports = data.ports.map(p => p.dport)
     const [selectedPort, setSelectedPort] = useState<number | null>(ports[0] ?? null)
-    const [sortKey, setSortKey] = useState<SortKey>('timestamp')
+    const [sortKey, setSortKey] = useState<SortKey>('lastSeen')
     const [sortDir, setSortDir] = useState<SortDir>('desc')
 
-    const calls = (data.ports.find(p => p.dstPort === selectedPort)?.calls ?? [])
+    const section = data.ports.find(p => p.dport === selectedPort)
+    const interactions = (section?.interactions ?? [])
         .slice()
-        .sort((a, b) => {
-            const av = sortKey === 'timestamp' ? (a.timestamp ?? 0) : a.status
-            const bv = sortKey === 'timestamp' ? (b.timestamp ?? 0) : b.status
-            return sortDir === 'asc' ? av - bv : bv - av
-        })
+        .sort((a, b) => sortDir === 'asc' ? a[sortKey] - b[sortKey] : b[sortKey] - a[sortKey])
 
     function toggleSort(key: SortKey) {
         if (sortKey === key) {
@@ -60,45 +56,52 @@ export default function BottomPanel({src, dst, data, onClose}: Props) {
                     <span className="bottom-panel__ip">{dst}</span>
                 </div>
                 <div className="bottom-panel__controls">
+                    {section?.connection && (
+                        <span>TCP connections: {section.connection.count}</span>
+                    )}
                     <select
                         className="bottom-panel__port-select"
                         value={selectedPort ?? ''}
-                        onChange={e => setSelectedPort(e.target.value ? Number(e.target.value) : null)}
+                        onChange={e => setSelectedPort(Number(e.target.value))}
                     >
                         {ports.map(port => (
-                            <option key={port} value={port ?? ''}>{port ?? '—'}</option>
+                            <option key={port} value={port}>{port}</option>
                         ))}
                     </select>
                     <button className="bottom-panel__close" onClick={onClose}>✕</button>
                 </div>
             </div>
 
-            {calls.length === 0
+            {interactions.length === 0
                 ? <p className="bottom-panel__empty">No HTTP traffic observed on this port</p>
                 : (
                     <div className="bottom-panel__table-wrap">
                         <table className="bottom-panel__table">
                             <thead>
                                 <tr>
-                                    <th className="sortable" onClick={() => toggleSort('timestamp')}>
-                                        Time{sortIndicator('timestamp')}
-                                    </th>
                                     <th>Method</th>
-                                    <th>URL</th>
+                                    <th>Path</th>
                                     <th className="sortable" onClick={() => toggleSort('status')}>
                                         Status{sortIndicator('status')}
                                     </th>
-                                    <th>Payload</th>
+                                    <th className="sortable" onClick={() => toggleSort('count')}>
+                                        Count{sortIndicator('count')}
+                                    </th>
+                                    <th>First seen</th>
+                                    <th className="sortable" onClick={() => toggleSort('lastSeen')}>
+                                        Last seen{sortIndicator('lastSeen')}
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {calls.map((call, i) => (
-                                    <tr key={i}>
-                                        <td className="col-time">{formatTimestamp(call.timestamp)}</td>
-                                        <td className="col-method">{call.method}</td>
-                                        <td className="col-url">{call.url}</td>
-                                        <td className={`col-status ${statusClass(call.status)}`}>{call.status}</td>
-                                        <td className="col-payload">—</td>
+                                {interactions.map(i => (
+                                    <tr key={i.key}>
+                                        <td className="col-method">{i.method}</td>
+                                        <td className="col-url">{i.path}</td>
+                                        <td className={`col-status ${statusClass(i.status)}`}>{i.status}</td>
+                                        <td className="col-count">{i.count}</td>
+                                        <td className="col-time">{formatTimestamp(i.firstSeen)}</td>
+                                        <td className="col-time">{formatTimestamp(i.lastSeen)}</td>
                                     </tr>
                                 ))}
                             </tbody>

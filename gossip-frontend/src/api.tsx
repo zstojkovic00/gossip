@@ -1,21 +1,42 @@
-export interface ServiceRelation {
-    id: string
-    src: string
-    dst: string
-    srcProcessName: string | null
-    dstProcessName: string | null
-    dstPort: number | null
-    method: string | null
-    url: string | null
-    status: number | null
-    timestamp: number | null
+export interface Service {
+    ip: string
+    name: string | null
 }
 
-export async function fetchServiceRelations(): Promise<ServiceRelation[]> {
-    const response = await fetch('/api/v1/services/calls')
+export interface Connection {
+    src: string
+    dst: string
+    dport: number
+    count: number
+    firstSeen: number
+    lastSeen: number
+}
+
+export interface Interaction {
+    key: string
+    src: string
+    dst: string
+    dport: number
+    protocol: string
+    method: string
+    path: string
+    status: number
+    count: number
+    firstSeen: number
+    lastSeen: number
+}
+
+export interface Topology {
+    services: Service[]
+    connections: Connection[]
+    interactions: Interaction[]
+}
+
+export async function fetchTopology(): Promise<Topology> {
+    const response = await fetch('/api/v1/topology')
 
     if (!response.ok) {
-        throw new Error(`Error fetching service network relations ${response.status}`)
+        throw new Error(`Error fetching topology ${response.status}`)
     }
 
     return response.json()
