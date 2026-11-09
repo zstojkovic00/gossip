@@ -5,10 +5,10 @@ import org.neo4j.driver.Values
 import org.springframework.stereotype.Repository
 
 @Repository
-class ConnectionRepository(
+class TcpConnectionRepository(
     private val neo4jDriver: Driver
 ) {
-    fun merge(connection: Connection) {
+    fun merge(tcpConnection: TcpConnection) {
         val query = """
             MERGE (src:Service {ip: ${'$'}src})
               ON CREATE SET src.comm = ${'$'}comm
@@ -24,11 +24,11 @@ class ConnectionRepository(
             session.executeWrite { tx ->
                 tx.run(
                     query, Values.parameters(
-                        "src", connection.src,
-                        "comm", connection.comm,
-                        "dst", connection.dst,
-                        "dport", connection.dport,
-                        "ts", connection.timestamp,
+                        "src", tcpConnection.src,
+                        "comm", tcpConnection.comm,
+                        "dst", tcpConnection.dst,
+                        "dport", tcpConnection.dport,
+                        "ts", tcpConnection.timestamp,
                     )
                 ).consume()
             }

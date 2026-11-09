@@ -1,0 +1,13 @@
+# One route per line, e.g. /videos/{slug}. {name} matches any single path part, other parts must match exactly (not a regex).
+# Object IDs, UUIDs and numbers are replaced automatically; list here only values that look like words.
+# Loaded at startup, restart the collector after a change.
+#
+# /videos/{slug}                     /videos/moj-prvi-video         -> /videos/{slug}
+# /videos/thumbnail                  /videos/thumbnail              -> /videos/thumbnail  (more literal parts win over {slug})
+# /users/{username}/settings         /users/zeljko/settings         -> /users/{username}/settings
+# /categories/{category}/videos      /categories/muzika/videos      -> /categories/{category}/videos
+# /files/{fileName}                  /files/report-2026.pdf         -> /files/{fileName}
+
+/eureka/apps/delta
+/eureka/apps/{app}
+/eureka/apps/{app}/{instanceId}

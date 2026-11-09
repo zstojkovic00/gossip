@@ -6,10 +6,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class TcpEventListener(
-    private val connectionService: ConnectionService
+    private val tcpConnectionService: TcpConnectionService
 ) {
     @KafkaListener(topics = ["\${spring.kafka.topics.tcp-event}"])
     fun onTcpEvent(msg: TcpEvent) {
-        connectionService.process(msg)
+        tcpConnectionService.process(msg)
     }
 }

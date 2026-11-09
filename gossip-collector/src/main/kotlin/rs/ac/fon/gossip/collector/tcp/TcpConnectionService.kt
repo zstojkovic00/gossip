@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
 @Service
-class ConnectionService(
-    private val connectionRepository: ConnectionRepository,
+class TcpConnectionService(
+    private val tcpConnectionRepository: TcpConnectionRepository,
     @Value("\${gossip.allowed-subnet-prefix}") private val subnetPrefix: String,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -17,8 +17,8 @@ class ConnectionService(
 
         log.info("[TCP] ${msg.comm} ${msg.saddr}:${msg.sport} → ${msg.daddr}:${msg.dport}")
 
-        connectionRepository.merge(
-            Connection(
+        tcpConnectionRepository.merge(
+            TcpConnection(
                 src = msg.saddr,
                 dst = msg.daddr,
                 dport = msg.dport,

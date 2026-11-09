@@ -1,5 +1,9 @@
 gossip:
   allowed-subnet-prefix: ${GOSSIP_SUBNET_PREFIX:172.}
+  http:
+    # Location of the route patterns file; its syntax is described at the top of route-patterns.txt
+    route-patterns: ${GOSSIP_ROUTE_PATTERNS:classpath:route-patterns.txt}
+
 
 spring:
   application:
