@@ -1,0 +1,3 @@
+### Services, TCP connections and HTTP interactions
+GET {{host}}/api/v1/topology
+Accept: application/json

@@ -1,0 +1,3 @@
+### Distinct operations grouped by service (ip + port)
+GET {{host}}/api/v1/operations
+Accept: application/json

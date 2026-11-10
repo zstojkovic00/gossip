@@ -1,5 +1,5 @@
-.PHONY: infra gossip-collector gossip-api frontend gossip-agent streaming \
-        clear clear-agent clear-infra clear-streaming
+.PHONY: infra gossip-collector gossip-api frontend gossip-agent streaming e2e \
+        clear clear-apps clear-agent clear-infra clear-streaming
 
 COMPOSE := docker compose -f gossip-collector/docker-compose.yaml
 
@@ -22,7 +22,13 @@ gossip-agent:
 streaming:
 	docker compose -f streaming-service/docker-compose.yml up -d
 
+e2e:
+	./e2e/run.sh
+
 ## Clear
+clear-apps:
+	-pkill -f 'rs\.ac\.fon\.gossip\.(collector|api)\.'; true
+
 clear-agent:
 	-sudo pkill -x gossip-agent 2>/dev/null; true
 
@@ -32,4 +38,4 @@ clear-infra:
 clear-streaming:
 	-docker compose -f streaming-service/docker-compose.yml down -v
 
-clear: clear-agent clear-infra clear-streaming
+clear: clear-apps clear-agent clear-infra clear-streaming
