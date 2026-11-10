@@ -1,6 +1,5 @@
 package rs.ac.fon.gossip.api.topology
 
-import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -13,5 +12,5 @@ class TopologyController(
 ) {
     @GetMapping
     fun getTopology(): ResponseEntity<TopologyResponse> =
-        ResponseEntity.ok(TopologyResponse.from(topologyService.getTopology()))
+        ResponseEntity.ok(topologyService.getTopology().toResponse())
 }
