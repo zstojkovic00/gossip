@@ -28,8 +28,8 @@ data class Interaction(
     val protocol: String,
     val method: String,
     val path: String,
-    val status: Long,
     val count: Long,
+    val errorCount: Long,
     val firstSeen: Long,
     val lastSeen: Long,
 )

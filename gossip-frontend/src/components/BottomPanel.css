@@ -125,9 +125,5 @@
 .col-time    { white-space: nowrap; color: #94a3b8; }
 .col-method  { font-weight: 700; color: #3b82f6; white-space: nowrap; }
 .col-url     { word-break: break-all; }
-.col-status  { font-weight: 700; white-space: nowrap; }
 .col-count   { white-space: nowrap; text-align: right; }
-
-.status--2xx { color: #16a34a; }
-.status--4xx { color: #d97706; }
-.status--5xx { color: #dc2626; }
+.col-errors  { font-weight: 700; color: #dc2626; }

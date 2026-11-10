@@ -24,8 +24,8 @@ class TopologyRepository(
               MATCH (src:Service)-[:SENDS]->(i:Interaction)-[:TO]->(dst:Service)
               RETURN collect({
                 key: i.key, src: src.ip, dst: dst.ip, dport: i.dport,
-                protocol: i.protocol, method: i.method, path: i.path, status: i.status,
-                count: i.count, firstSeen: i.firstSeen, lastSeen: i.lastSeen
+                protocol: i.protocol, method: i.method, path: i.path,
+                count: i.count, errorCount: i.errorCount, firstSeen: i.firstSeen, lastSeen: i.lastSeen
               }) AS interactions
             }
             RETURN services, connections, interactions
@@ -58,8 +58,8 @@ class TopologyRepository(
                     protocol = i["protocol"].asString(),
                     method = i["method"].asString(),
                     path = i["path"].asString(),
-                    status = i["status"].asLong(),
                     count = i["count"].asLong(),
+                    errorCount = i["errorCount"].asLong(),
                     firstSeen = i["firstSeen"].asLong(),
                     lastSeen = i["lastSeen"].asLong(),
                 )

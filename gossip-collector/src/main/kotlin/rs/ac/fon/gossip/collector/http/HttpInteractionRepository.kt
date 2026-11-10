@@ -14,9 +14,10 @@ class HttpInteractionRepository(
             MERGE (dst:Service {ip: ${'$'}dst})
             MERGE (i:Interaction {key: ${'$'}key})
             ON CREATE SET i.dport = ${'$'}dport, i.protocol = ${'$'}protocol, i.method = ${'$'}method,
-                          i.path = ${'$'}path, i.status = ${'$'}status,
-                          i.count = 0, i.firstSeen = ${'$'}ts, i.lastSeen = ${'$'}ts
+                          i.path = ${'$'}path,
+                          i.count = 0, i.errorCount = 0, i.firstSeen = ${'$'}ts, i.lastSeen = ${'$'}ts
             SET i.count = i.count + 1,
+                i.errorCount = i.errorCount + CASE WHEN ${'$'}failed THEN 1 ELSE 0 END,
                 i.firstSeen = CASE WHEN ${'$'}ts < i.firstSeen THEN ${'$'}ts ELSE i.firstSeen END,
                 i.lastSeen  = CASE WHEN ${'$'}ts > i.lastSeen  THEN ${'$'}ts ELSE i.lastSeen  END
             MERGE (src)-[:SENDS]->(i)
@@ -34,7 +35,7 @@ class HttpInteractionRepository(
                         "protocol", interaction.protocol,
                         "method", interaction.method,
                         "path", interaction.path,
-                        "status", interaction.status,
+                        "failed", interaction.failed,
                         "ts", interaction.timestamp,
                     )
                 ).consume()

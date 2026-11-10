@@ -11,14 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 class TopologyController(
     private val topologyService: TopologyService
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
-
     @GetMapping
-    fun getTopology(): ResponseEntity<TopologyResponse> {
-        val topology = topologyService.getTopology()
-        log.info("Found {} services, {} connections, {} interactions",
-            topology.services.size, topology.connections.size, topology.interactions.size
-        )
-        return ResponseEntity.ok(TopologyResponse.from(topology))
-    }
+    fun getTopology(): ResponseEntity<TopologyResponse> =
+        ResponseEntity.ok(TopologyResponse.from(topologyService.getTopology()))
 }

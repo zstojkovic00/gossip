@@ -54,8 +54,8 @@ data class InteractionResponse(
     val protocol: String,
     val method: String,
     val path: String,
-    val status: Long,
     val count: Long,
+    val errorCount: Long,
     val firstSeen: Long,
     val lastSeen: Long,
 ) {
@@ -68,8 +68,8 @@ data class InteractionResponse(
             protocol = interaction.protocol,
             method = interaction.method,
             path = interaction.path,
-            status = interaction.status,
             count = interaction.count,
+            errorCount = interaction.errorCount,
             firstSeen = interaction.firstSeen,
             lastSeen = interaction.lastSeen,
         )

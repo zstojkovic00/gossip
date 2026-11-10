@@ -20,7 +20,7 @@ class HttpInteractionService(
         log.info("[HTTP] ${msg.saddr} → ${msg.daddr}:${msg.dport} ${msg.method} ${msg.url} → ${msg.status}")
 
         val path = functionalityResolver.resolve(msg.url.substringBefore('?'))
-        val key = "${msg.saddr}|${msg.daddr}|${msg.dport}|${msg.method}|$path|${msg.status}"
+        val key = "${msg.saddr}|${msg.daddr}|${msg.dport}|${msg.method}|$path"
 
         httpInteractionRepository.merge(
             HttpInteraction(
@@ -31,7 +31,7 @@ class HttpInteractionService(
                 protocol = "http",
                 method = msg.method,
                 path = path,
-                status = msg.status,
+                failed = msg.status >= 400,
                 timestamp = msg.timestamp,
             )
         )

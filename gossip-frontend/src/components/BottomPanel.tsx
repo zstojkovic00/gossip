@@ -9,14 +9,8 @@ interface Props {
     onClose: () => void
 }
 
-type SortKey = 'lastSeen' | 'status' | 'count'
+type SortKey = 'lastSeen' | 'count' | 'errorCount'
 type SortDir = 'asc' | 'desc'
-
-function statusClass(status: number): string {
-    if (status >= 500) return 'status--5xx'
-    if (status >= 400) return 'status--4xx'
-    return 'status--2xx'
-}
 
 function formatTimestamp(ts: number): string {
     return new Date(ts).toLocaleString()
@@ -81,11 +75,11 @@ export default function BottomPanel({src, dst, data, onClose}: Props) {
                                 <tr>
                                     <th>Method</th>
                                     <th>Path</th>
-                                    <th className="sortable" onClick={() => toggleSort('status')}>
-                                        Status{sortIndicator('status')}
-                                    </th>
                                     <th className="sortable" onClick={() => toggleSort('count')}>
                                         Count{sortIndicator('count')}
+                                    </th>
+                                    <th className="sortable" onClick={() => toggleSort('errorCount')}>
+                                        Errors{sortIndicator('errorCount')}
                                     </th>
                                     <th>First seen</th>
                                     <th className="sortable" onClick={() => toggleSort('lastSeen')}>
@@ -98,8 +92,8 @@ export default function BottomPanel({src, dst, data, onClose}: Props) {
                                     <tr key={i.key}>
                                         <td className="col-method">{i.method}</td>
                                         <td className="col-url">{i.path}</td>
-                                        <td className={`col-status ${statusClass(i.status)}`}>{i.status}</td>
                                         <td className="col-count">{i.count}</td>
+                                        <td className={`col-count ${i.errorCount > 0 ? 'col-errors' : ''}`}>{i.errorCount}</td>
                                         <td className="col-time">{formatTimestamp(i.firstSeen)}</td>
                                         <td className="col-time">{formatTimestamp(i.lastSeen)}</td>
                                     </tr>

@@ -20,8 +20,8 @@ export interface Interaction {
     protocol: string
     method: string
     path: string
-    status: number
     count: number
+    errorCount: number
     firstSeen: number
     lastSeen: number
 }

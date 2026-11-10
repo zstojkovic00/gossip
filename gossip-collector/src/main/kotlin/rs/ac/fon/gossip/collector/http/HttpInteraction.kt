@@ -8,6 +8,6 @@ data class HttpInteraction(
     val protocol: String,
     val method: String,
     val path: String,
-    val status: Int,
+    val failed: Boolean,
     val timestamp: Long,
 )
