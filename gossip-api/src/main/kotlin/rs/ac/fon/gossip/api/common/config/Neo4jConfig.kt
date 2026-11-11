@@ -1,4 +1,4 @@
-package rs.ac.fon.gossip.api.config
+package rs.ac.fon.gossip.api.common.config
 
 import org.neo4j.driver.AuthTokens
 import org.neo4j.driver.Driver

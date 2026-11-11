@@ -19,6 +19,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.neo4j.driver:neo4j-java-driver:5.28.4")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
