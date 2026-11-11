@@ -9,6 +9,7 @@ data class TopologyResponse(
 data class ServiceResponse(val ip: String, val name: String?)
 
 data class ConnectionResponse(
+    val key: String,
     val src: String,
     val dst: String,
     val dport: Long,
@@ -39,7 +40,7 @@ fun Topology.toResponse() = TopologyResponse(
 
 fun Service.toResponse() = ServiceResponse(ip, name)
 
-fun Connection.toResponse() = ConnectionResponse(src, dst, dport, count, firstSeen, lastSeen)
+fun Connection.toResponse() = ConnectionResponse(key, src, dst, dport, count, firstSeen, lastSeen)
 
 fun Interaction.toResponse() = InteractionResponse(
     key, src, dst, dport, protocol, method, path, count, errorCount, firstSeen, lastSeen,

@@ -1,3 +1,7 @@
 ### Services, TCP connections and HTTP interactions
 GET {{host}}/api/v1/topology
 Accept: application/json
+
+### Distinct operations grouped by service (ip + port)
+GET {{host}}/api/v1/topology/operations
+Accept: application/json

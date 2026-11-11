@@ -8,6 +8,7 @@ data class Flow(
 
 data class Step(
     val id: String,
+    val protocol: Protocol,
     val caller: String,
     val ip: String,
     val port: Long,
@@ -15,3 +16,5 @@ data class Step(
     val path: String?,
     val after: List<String>,
 )
+
+enum class Protocol { HTTP, TCP }

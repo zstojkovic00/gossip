@@ -78,7 +78,7 @@ RUN_DIR="$(ls -td e2e/runs/*/ | head -1)"
 step "Waiting for the pipeline to drain"
 sleep 10
 
-curl -s http://localhost:8090/api/v1/operations | jq . > "$RUN_DIR/operations.json"
+curl -s http://localhost:8090/api/v1/topology/operations | jq . > "$RUN_DIR/operations.json"
 docker exec gossip-collector-neo4j-1 cypher-shell -u neo4j -p password --format plain \
     "MATCH (src:Service)-[:SENDS]->(i:Interaction)-[:TO]->(dst:Service)
      RETURN src.ip AS src, dst.ip AS dst, i.dport AS port, i.method AS method, i.path AS path,
@@ -93,7 +93,7 @@ cat >&2 <<EOF
 Done. Run saved to $RUN_DIR
   expected.tsv     what the client sent
   actual.tsv       what gossip stored in Neo4j
-  operations.json  GET /api/v1/operations
+  operations.json  GET /api/v1/topology/operations
 
 Frontend: make frontend
 Stop:     make clear

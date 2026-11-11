@@ -4,6 +4,7 @@ data class FlowResponse(val id: String, val name: String, val steps: List<StepRe
 
 data class StepResponse(
     val id: String,
+    val protocol: Protocol,
     val caller: String,
     val ip: String,
     val port: Long,
@@ -14,4 +15,4 @@ data class StepResponse(
 
 fun Flow.toResponse() = FlowResponse(id, name, steps.map { it.toResponse() })
 
-fun Step.toResponse() = StepResponse(id, caller, ip, port, method, path, after)
+fun Step.toResponse() = StepResponse(id, protocol, caller, ip, port, method, path, after)

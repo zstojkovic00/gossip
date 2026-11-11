@@ -14,8 +14,8 @@ class FlowValidationTest {
     }
 
     @Test
-    fun acceptsTcpOnlyStep() {
-        val flow = flow(step("s1").copy(method = null, path = null))
+    fun acceptsTcpStepWithoutMethodAndPath() {
+        val flow = flow(step("s1").copy(protocol = Protocol.TCP, method = null, path = null))
 
         assertThatCode { validate(flow) }.doesNotThrowAnyException()
     }
@@ -49,14 +49,21 @@ class FlowValidationTest {
     }
 
     @Test
-    fun rejectsMethodWithoutPath() {
+    fun rejectsHttpStepWithoutPath() {
         assertThatIllegalArgumentException()
             .isThrownBy { validate(flow(step("s1").copy(path = null))) }
-            .withMessageContaining("both method and path")
+            .withMessageContaining("HTTP step 's1' must have method and path")
     }
 
-    private fun flow(vararg steps: Step) = Flow("f1", "Gledanje videa", steps.toList())
+    @Test
+    fun rejectsTcpStepWithMethodAndPath() {
+        assertThatIllegalArgumentException()
+            .isThrownBy { validate(flow(step("s1").copy(protocol = Protocol.TCP))) }
+            .withMessageContaining("TCP step 's1' must not have method or path")
+    }
+
+    private fun flow(vararg steps: Step) = Flow("f1", "Get videos", steps.toList())
 
     private fun step(id: String, vararg after: String) =
-        Step(id, "172.19.0.6", "172.19.0.7", 8081, "GET", "/videos/{objectId}", after.toList())
+        Step(id, Protocol.HTTP, "172.19.0.6", "172.19.0.7", 8081, "GET", "/videos/{objectId}", after.toList())
 }

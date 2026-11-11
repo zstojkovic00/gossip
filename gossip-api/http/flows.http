@@ -1,18 +1,16 @@
 ### List flows
 GET {{host}}/api/v1/flows
 
-### Create flow (s4 and s5 run in parallel after s3; steps without method/path are TCP only)
+### Create flow (s4 and s5 run in parallel after s3; TCP steps have no method/path)
 POST {{host}}/api/v1/flows
 Content-Type: application/json
 
 {
-  "name": "Upload videa",
+  "name": "Get videos",
   "steps": [
-    { "id": "s1", "caller": "172.19.0.1", "ip": "172.19.0.6", "port": 8080, "method": "POST", "path": "/videos" },
-    { "id": "s2", "caller": "172.19.0.6", "ip": "172.19.0.9", "port": 9191, "method": "GET", "path": "/users/principal", "after": ["s1"] },
-    { "id": "s3", "caller": "172.19.0.6", "ip": "172.19.0.7", "port": 8081, "method": "POST", "path": "/videos", "after": ["s2"] },
-    { "id": "s4", "caller": "172.19.0.7", "ip": "172.19.0.3", "port": 27017, "after": ["s3"] },
-    { "id": "s5", "caller": "172.19.0.7", "ip": "172.19.0.5", "port": 9092, "after": ["s3"] }
+    { "id": "s1", "protocol": "HTTP", "caller": "172.19.0.1", "ip": "172.19.0.6", "port": 8080, "method": "GET", "path": "/videos" },
+    { "id": "s2", "protocol": "HTTP", "caller": "172.19.0.6", "ip": "172.19.0.7", "port": 8081, "method": "GET", "path": "/videos", "after": ["s1"] },
+    { "id": "s3", "protocol": "TCP", "caller": "172.19.0.7", "ip": "172.19.0.4", "port": 27017,  "after": ["s2"] }
   ]
 }
 
@@ -21,15 +19,19 @@ Content-Type: application/json
 ### Get the created flow
 GET {{host}}/api/v1/flows/{{flowId}}
 
+### Check the created flow against observed traffic
+GET {{host}}/api/v1/flows/{{flowId}}/conformance
+
 ### Replace the created flow
 PUT {{host}}/api/v1/flows/{{flowId}}
 Content-Type: application/json
 
 {
-  "name": "Upload videa v2",
+  "name": "Get videos 2 ",
   "steps": [
-    { "id": "s1", "caller": "172.19.0.1", "ip": "172.19.0.6", "port": 8080, "method": "POST", "path": "/videos" },
-    { "id": "s2", "caller": "172.19.0.6", "ip": "172.19.0.7", "port": 8081, "method": "POST", "path": "/videos", "after": ["s1"] }
+    { "id": "s1", "protocol": "HTTP", "caller": "172.19.0.1", "ip": "172.19.0.6", "port": 8080, "method": "GET", "path": "/videos" },
+    { "id": "s2", "protocol": "HTTP", "caller": "172.19.0.6", "ip": "172.19.0.7", "port": 8081, "method": "GET", "path": "/videos", "after": ["s1"] },
+    { "id": "s3", "protocol": "TCP", "caller": "172.19.0.8", "ip": "172.19.0.4", "port": 27017,  "after": ["s2"] }
   ]
 }
 

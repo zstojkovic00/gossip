@@ -48,9 +48,10 @@ internal fun validate(flow: Flow) {
     require(duplicates.isEmpty()) { "Duplicate step ids: $duplicates" }
 
     flow.steps.forEach { step ->
-        val a = step.method
-        val b = step.path
-        require((a == null) == (b == null)) { "Step '${step.id}' must have both method and path, or neither" }
+        when (step.protocol) {
+            Protocol.HTTP -> require(step.method != null && step.path != null) { "HTTP step '${step.id}' must have method and path" }
+            Protocol.TCP -> require(step.method == null && step.path == null) { "TCP step '${step.id}' must not have method or path" }
+        }
         step.after.forEach { require(it in ids) { "Step '${step.id}' comes after unknown step '$it'" } }
     }
 

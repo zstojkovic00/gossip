@@ -65,7 +65,7 @@ class FlowRepository(
             MATCH (f:Flow {id: ${'$'}id})
             UNWIND ${'$'}steps AS step
             CREATE (f)-[:HAS_STEP]->(:Step {
-                id: step.id, caller: step.caller, ip: step.ip, port: step.port,
+                id: step.id, protocol: step.protocol, caller: step.caller, ip: step.ip, port: step.port,
                 method: step.method, path: step.path
             })
             """.trimIndent(), parameters
@@ -88,7 +88,7 @@ class FlowRepository(
     private fun parameters(flow: Flow): Value {
         val steps = flow.steps.map {
             mapOf(
-                "id" to it.id, "caller" to it.caller, "ip" to it.ip, "port" to it.port,
+                "id" to it.id, "protocol" to it.protocol.name, "caller" to it.caller, "ip" to it.ip, "port" to it.port,
                 "method" to it.method, "path" to it.path, "after" to it.after,
             )
         }
@@ -112,7 +112,7 @@ class FlowRepository(
             WITH f, s, [(previous:Step)-[:NEXT]->(s) | previous.id] AS after
             ORDER BY s.id
             RETURN f.id AS id, f.name AS name, collect({
-                id: s.id, caller: s.caller, ip: s.ip, port: s.port,
+                id: s.id, protocol: s.protocol, caller: s.caller, ip: s.ip, port: s.port,
                 method: s.method, path: s.path, after: after
             }) AS steps
             ORDER BY name
@@ -131,6 +131,7 @@ class FlowRepository(
         steps = this["steps"].asList { s ->
             Step(
                 id = s["id"].asString(),
+                protocol = Protocol.valueOf(s["protocol"].asString()),
                 caller = s["caller"].asString(),
                 ip = s["ip"].asString(),
                 port = s["port"].asLong(),

@@ -12,6 +12,7 @@ data class Service(
 )
 
 data class Connection(
+    val key: String,
     val src: String,
     val dst: String,
     val dport: Long,

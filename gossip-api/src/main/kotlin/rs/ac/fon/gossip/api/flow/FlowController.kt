@@ -10,15 +10,21 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import rs.ac.fon.gossip.api.flow.conformance.ConformanceService
+import rs.ac.fon.gossip.api.flow.conformance.ConformanceResponse
+import rs.ac.fon.gossip.api.flow.conformance.toResponse
 
 @RestController
 @RequestMapping("/api/v1/flows")
 class FlowController(
-    private val flowService: FlowService
+    private val flowService: FlowService,
+    private val conformanceService: ConformanceService
 ) {
     @GetMapping
     fun getFlows(): ResponseEntity<List<FlowResponse>> =
-        ResponseEntity.ok(flowService.getFlows().map { it.toResponse() })
+        ResponseEntity.ok(
+            flowService.getFlows().map { it.toResponse() }
+        )
 
     @GetMapping("/{id}")
     fun getFlow(@PathVariable id: String): ResponseEntity<FlowResponse> =
@@ -39,4 +45,8 @@ class FlowController(
         flowService.deleteFlow(id)
         return ResponseEntity.noContent().build()
     }
+
+    @GetMapping("/{id}/conformance")
+    fun checkFlowConformance(@PathVariable id: String): ResponseEntity<ConformanceResponse> =
+        ResponseEntity.ok(conformanceService.checkConformance(id).toResponse())
 }

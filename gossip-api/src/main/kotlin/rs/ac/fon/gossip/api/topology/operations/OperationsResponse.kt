@@ -1,4 +1,4 @@
-package rs.ac.fon.gossip.api.operations
+package rs.ac.fon.gossip.api.topology.operations
 
 data class OperationsResponse(val services: List<ServiceOperationsResponse>)
 
