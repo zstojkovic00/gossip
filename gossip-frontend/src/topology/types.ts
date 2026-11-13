@@ -4,6 +4,7 @@ export interface Service {
 }
 
 export interface Connection {
+    key: string
     src: string
     dst: string
     dport: number
@@ -32,12 +33,13 @@ export interface Topology {
     interactions: Interaction[]
 }
 
-export async function fetchTopology(): Promise<Topology> {
-    const response = await fetch('/api/v1/topology')
+export interface Operation {
+    method: string
+    path: string
+}
 
-    if (!response.ok) {
-        throw new Error(`Error fetching topology ${response.status}`)
-    }
-
-    return response.json()
+export interface ServiceOperations {
+    ip: string
+    port: number
+    operations: Operation[]
 }
