@@ -6,14 +6,11 @@ Passive, black-box observability for microservice architectures. An eBPF agent c
 gossip-agent (eBPF, Go) → Kafka → gossip-collector (Kotlin) → Neo4j → gossip-api (Kotlin) → gossip-frontend (React)
 ```
 
-From this observed communication alone, Gossip draws the topology of the system and the operations on every connection (left). On top of it, Gossip attempts semantic validation of business processes: an architect describes a process as a **flow** of calls between services, and Gossip checks it against the observed communication at the level of patterns, not individual requests. In the upload flow on the right, video-service never calls security-service, so that step is marked as missing.
+From this observed communication alone, Gossip draws the topology of the system and the operations on every connection (first image). On top of it, Gossip attempts semantic validation of business processes: an architect describes a process as a **flow** of calls between services, and Gossip checks it against the observed communication at the level of patterns, not individual requests. In the upload flow below it, video-service never calls security-service, so that step is marked as missing.
 
-<table>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/topology-edge.png" alt="Topology with the api-gateway to video-service edge selected"></td>
-    <td width="50%"><img src="docs/screenshots/flow-missing.png" alt="Upload flow with a missing step"></td>
-  </tr>
-</table>
+![Topology with the api-gateway to video-service edge selected](docs/screenshots/topology-edge.png)
+
+![Upload flow with a missing step](docs/screenshots/flow-missing.png)
 
 See [How Gossip works](docs/how-it-works.md) for the topology view, flows, the flow editor.
 
