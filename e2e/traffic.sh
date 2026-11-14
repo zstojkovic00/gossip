@@ -9,6 +9,7 @@ BASE_URL="${BASE_URL:-http://localhost:8080}"
 ROUNDS="${1:-1}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+VIDEO_FILE="$SCRIPT_DIR/../streaming-service/video-service/http/assets/marvel-spiderman.mp4"
 RUN_ID="$(date +%Y%m%d-%H%M%S)"
 RUN_DIR="$SCRIPT_DIR/runs/$RUN_ID"
 mkdir -p "$RUN_DIR"
@@ -47,8 +48,12 @@ for round in $(seq 1 "$ROUNDS"); do
 
     if [ -n "$token" ]; then
         call GET /users/principal -H "Authorization: Bearer $token" > /dev/null
+        # upload makes video-service write to MongoDB and publish an event to Kafka
+        call POST /videos -H "Authorization: Bearer $token" \
+            -F "description=e2e upload $round" -F "genre=E2E" \
+            -F "file=@$VIDEO_FILE;type=video/mp4" > /dev/null
     else
-        echo "    no token from login, skipping /users/principal" >&2
+        echo "    no token from login, skipping /users/principal and upload" >&2
     fi
 
     call GET /videos > /dev/null

@@ -1,10 +1,21 @@
 # Gossip
 
-Passive observability for microservice architectures. An eBPF agent captures TCP connections and HTTP traffic at the Linux kernel level, without changing application code, and sends them through Kafka to a collector that builds a service communication graph in Neo4j.
+Passive, black-box observability for microservice architectures. An eBPF agent captures TCP connections and HTTP traffic at the Linux kernel level, without changing application code, and sends them through Kafka to a collector that builds a service communication graph in Neo4j.
 
 ```
 gossip-agent (eBPF, Go) → Kafka → gossip-collector (Kotlin) → Neo4j → gossip-api (Kotlin) → gossip-frontend (React)
 ```
+
+From this observed communication alone, Gossip draws the topology of the system and the operations on every connection (left). On top of it, Gossip attempts semantic validation of business processes: an architect describes a process as a **flow** of calls between services, and Gossip checks it against the observed communication at the level of patterns, not individual requests. In the upload flow on the right, video-service never calls security-service, so that step is marked as missing.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/topology-edge.png" alt="Topology with the api-gateway to video-service edge selected"></td>
+    <td width="50%"><img src="docs/screenshots/flow-missing.png" alt="Upload flow with a missing step"></td>
+  </tr>
+</table>
+
+See [How Gossip works](docs/how-it-works.md) for the topology view, flows, the flow editor.
 
 The observed demo system is [streaming-service](https://github.com/zstojkovic00/streaming-service), a separate repository. Clone it into `streaming-service/`:
 
@@ -12,6 +23,26 @@ The observed demo system is [streaming-service](https://github.com/zstojkovic00/
 git clone https://github.com/zstojkovic00/streaming-service.git
 cd streaming-service && mvn compile jib:dockerBuild
 ```
+
+## Components
+
+| Module | Language | Role |
+|---|---|---|
+| gossip-agent | Go + eBPF (C) | hooks the kernel, captures TCP connections and HTTP requests, publishes them to Kafka |
+| gossip-collector | Kotlin, Spring Boot | consumes Kafka, resolves paths to route templates (`/videos/{objectId}`), writes services, connections and interactions to Neo4j |
+| gossip-api| Kotlin, Spring Boot | REST API for the topology, the operations catalog, flows and conformance |
+| gossip-frontend | React, TypeScript | topology view, flow list, flow details and flow editor |
+
+## Quick start
+
+Runs everything from a clean state (infrastructure, collector, API, agent, streaming-service and traffic) and leaves it running:
+
+```
+make e2e
+make frontend
+```
+
+Open http://localhost:5173. Stop everything with `make clear`. The steps below do the same by hand.
 
 ## Running
 
