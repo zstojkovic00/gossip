@@ -5,21 +5,22 @@ Passive, black-box observability for microservice architectures. An eBPF agent c
 ```
 gossip-agent (eBPF, Go) → Kafka → gossip-collector (Kotlin) → Neo4j → gossip-api (Kotlin) → gossip-frontend (React)
 ```
-
-From this observed communication alone, Gossip draws the topology of the system and the operations on every connection (first image). On top of it, Gossip attempts semantic validation of business processes: an architect describes a process as a **flow** of calls between services, and Gossip checks it against the observed communication at the level of patterns, not individual requests. In the upload flow below it, video-service never calls security-service, so that step is marked as missing.
-
-![Topology with the api-gateway to video-service edge selected](docs/screenshots/topology-edge.png)
-
-![Upload flow with a missing step](docs/screenshots/flow-missing.png)
-
-See [How Gossip works](docs/how-it-works.md) for the topology view, flows, the flow editor.
-
 The observed demo system is [streaming-service](https://github.com/zstojkovic00/streaming-service), a separate repository. Clone it into `streaming-service/`:
 
 ```
 git clone https://github.com/zstojkovic00/streaming-service.git
 cd streaming-service && mvn compile jib:dockerBuild
 ```
+
+From this observed communication alone, Gossip draws the topology of the system and the operations on every connection.
+
+![Topology with the api-gateway to video-service edge selected](docs/screenshots/topology-edge.png)
+
+Gossip as well attempts semantic validation of business processes: an architect describes a process as a **flow** of calls between services, and Gossip checks it against the observed communication at the level of patterns, not individual requests. In the upload flow below it, video-service never calls security-service, so that step is marked as missing.
+
+![Upload flow with a missing step](docs/screenshots/flow-missing.png)
+
+See [How Gossip works](docs/how-it-works.md) for the topology view, flows, the flow editor.
 
 ## Components
 
